@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package movie.v1.cmd;
+
+import "common/types_common_v1.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "api/pb/v1/cmdpb";
+
+service PersonApi {
+    rpc CreatePerson(CreatePersonRequest) returns (CreatePersonResponse);
+    rpc UpdatePerson(UpdatePersonRequest) returns (google.protobuf.Empty);
+    rpc DeletePerson(DeletePersonRequest) returns (google.protobuf.Empty);
+}
+
+// TODO: too much duplication over models, but we tried to keep the style of coding
+message CreatePersonRequest {
+    common.Person person =1;
+}
+
+message CreatePersonResponse {
+    int64 person_id = 1;
+}
+
+message UpdatePersonRequest {
+    common.Person person =2;
+}
+
+message DeletePersonRequest {
+    int64 person_id = 1;
+}
+ 

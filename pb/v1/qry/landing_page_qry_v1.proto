@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package movie.v1.qry;
+
+import "common/types_common_v1.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "api/pb/v1/qrypb";
+
+service LandingPageApi {
+    rpc GetLandingPage(google.protobuf.Empty) returns (GetLandingPageResponse);
+}
+
+message GetLandingPageResponse {
+    message Movie {
+        message Genre {
+            int64 genre_id                  = 1;
+            common.MultiLingualString title = 2;
+        }
+
+        int64 movie_id      = 1;
+        int64 movie_type_id = 2;
+        // series
+        optional int64 season_id      = 3;
+        optional int32 episode_no     = 4;
+        optional bool is_last_episode = 5;
+        // franchise
+        optional int64 franchise_id = 6;
+        // common
+        common.MultiLingualString title = 7;
+        bool is_coming_soon             = 8;
+        // int32 produced_year             = 9; removed in favor of range date
+        int64 release_at          = 10;
+
+        // optional int64 schedule_cast_id                     = 11;
+        // optional int64 schedule_cast_at = 12;
+        repeated Genre genres                               = 13;
+        optional int64 production_start_date = 14;
+        optional int64 production_end_date = 15;
+        bool is_play_free             = 16;
+        bool is_download_free         = 17;
+    }
+
+    message All {
+        string title          = 1;
+        repeated Movie movies = 2;
+    }
+
+    repeated All result = 1;
+}

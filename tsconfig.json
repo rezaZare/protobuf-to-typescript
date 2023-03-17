@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "outDir": "./out",
+        "rootDir": "./src",
+        "sourceMap": true,
+        "incremental": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true, 
+        "forceConsistentCasingInFileNames": false, 
+        "strict": false, 
+        "target": "es5",
+        "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+        "skipLibCheck": true,
+        "lib": ["es2017"],
+        "types": ["node"],
+        "declaration": false,
+    },
+    "exclude":["/node_modules","/src/ts","/oldCode"]
+}

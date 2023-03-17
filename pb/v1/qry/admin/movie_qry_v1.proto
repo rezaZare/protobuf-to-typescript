@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package movie.v1.qry.admin;
+
+import "common/types_common_v1.proto";
+
+option go_package = "api/pb/v1/qrypb";
+
+
+service MovieApi {
+    rpc ListSeries(ListSeriesRequest) returns (ListSeriesResponse);
+    rpc ListFranchises(ListFranchisesRequest) returns (ListFranchisesResponse);
+}
+ 
+message ListSeriesRequest {
+    optional common.MovieState state     = 1;
+    optional string search_title = 2 ;
+    common.OffsetPaginationRequest page = 3;
+}
+message ListSeriesResponse {
+    repeated common.Series series=1;
+    int64 total_count = 2;
+}
+
+message ListFranchisesRequest {
+    optional common.MovieState state     = 1;
+    optional string search_title = 2 ;
+    common.OffsetPaginationRequest page = 3;
+}
+message ListFranchisesResponse {
+    repeated common.Franchise franchises=1;
+    int64 total_count = 2;
+}

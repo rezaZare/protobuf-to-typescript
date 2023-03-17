@@ -1,0 +1,29 @@
+# linter -> https://github.com/yoheimuta/protolint
+# vscode extension -> https://marketplace.visualstudio.com/items?itemName=Plex.vscode-protolint
+# example config file -> https://github.com/yoheimuta/protolint/blob/master/_example/config/.protolint.yaml
+
+lint:
+  rules_option:
+    # FILE_NAMES_LOWER_SNAKE_CASE rule option.
+    enum_field_names_zero_value_end_with:
+      suffix: UNKNOWN
+    max_line_length:
+      # Specifies the character count for tab characters
+      tab_chars: 4
+
+  rules:
+    no_default: true
+
+    add:
+      # available rules -> https://github.com/yoheimuta/protolint#rules
+      - MESSAGE_NAMES_UPPER_CAMEL_CASE
+      - SERVICE_NAMES_UPPER_CAMEL_CASE
+      - ENUM_FIELD_NAMES_UPPER_SNAKE_CASE
+      - ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+      - PACKAGE_NAME_LOWER_CASE
+      - RPC_NAMES_UPPER_CAMEL_CASE
+      - SERVICE_NAMES_UPPER_CAMEL_CASE
+      - PROTO3_FIELDS_AVOID_REQUIRED
+      - PROTO3_GROUPS_AVOID
+      - ENUM_FIELD_NAMES_PREFIX
+#      - REPEATED_FIELD_NAMES_PLURALIZED

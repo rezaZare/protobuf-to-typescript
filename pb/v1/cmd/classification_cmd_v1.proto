@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package movie.v1.cmd;
+
+import "common/types_common_v1.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "api/pb/v1/cmdpb";
+
+service ClassificationApi {
+    rpc CreateClassification(CreateClassificationRequest) returns (CreateClassificationResponse);
+    rpc UpdateClassification(UpdateClassificationRequest) returns (google.protobuf.Empty);
+    rpc DeleteClassification(DeleteClassificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateClassificationList(CreateClassificationListRequest) returns (CreateClassificationListResponse);
+    rpc UpdateClassificationList(UpdateClassificationListRequest) returns (google.protobuf.Empty);
+    rpc DeleteClassificationList(DeleteClassificationListRequest) returns (google.protobuf.Empty);
+
+    rpc CreateGenreSimpleSpecification(CreateGenreSimpleSpecificationRequest) returns (CreateGenreSimpleSpecificationResponse);
+    rpc DeleteGenreSimpleSpecification(DeleteGenreSimpleSpecificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateAgeGroupSimpleSpecification(CreateAgeGroupSimpleSpecificationRequest) returns (CreateAgeGroupSimpleSpecificationResponse);
+    rpc DeleteAgeGroupSimpleSpecification(DeleteAgeGroupSimpleSpecificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateBannerSimpleSpecification(CreateBannerSimpleSpecificationRequest) returns (CreateBannerSimpleSpecificationResponse);
+    rpc DeleteBannerSimpleSpecification(DeleteBannerSimpleSpecificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateFestivalSimpleSpecification(CreateFestivalSimpleSpecificationRequest) returns (CreateFestivalSimpleSpecificationResponse);
+    rpc DeleteFestivalSimpleSpecification(DeleteFestivalSimpleSpecificationRequest) returns (google.protobuf.Empty);
+    
+    rpc CreateFestivalEventSimpleSpecification(CreateFestivalEventSimpleSpecificationRequest) returns (CreateFestivalEventSimpleSpecificationResponse);
+    rpc DeleteFestivalEventSimpleSpecification(DeleteFestivalEventSimpleSpecificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateScenesSimpleSpecification(CreateScenesSimpleSpecificationRequest) returns (CreateScenesSimpleSpecificationResponse);
+    rpc DeleteScenesSimpleSpecification(DeleteScenesSimpleSpecificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateReleaseAtSimpleSpecification(CreateReleaseAtSimpleSpecificationRequest) returns (CreateReleaseAtSimpleSpecificationResponse);
+    rpc DeleteReleaseAtSimpleSpecification(DeleteReleaseAtSimpleSpecificationRequest) returns (google.protobuf.Empty);
+
+    rpc CreateReleaseRangeSimpleSpecification(CreateReleaseRangeSimpleSpecificationRequest) returns (CreateReleaseRangeSimpleSpecificationResponse);
+    rpc DeleteReleaseRangeSimpleSpecification(DeleteReleaseRangeSimpleSpecificationRequest) returns (google.protobuf.Empty);
+}
+
+// Classification
+message CreateClassificationRequest {
+    common.Classification classfication =1;
+}
+
+message CreateClassificationResponse {
+    int64 classification_id = 1;
+}
+
+message UpdateClassificationRequest {
+    common.Classification classfication =1;
+}
+
+message DeleteClassificationRequest {
+    int64 classification_id = 1;
+}
+ 
+
+// Classficiation List
+message CreateClassificationListRequest {
+    common.ClassificationList classfication_list =1;
+}
+
+message CreateClassificationListResponse {
+    int64 classification_list_id = 1;
+}
+
+message UpdateClassificationListRequest {
+    common.ClassificationList classfication_list =1;
+}
+
+message DeleteClassificationListRequest {
+    int64 classification_list_id = 1;
+}
+ 
+// Genre Specification
+message CreateGenreSimpleSpecificationRequest {
+    common.GenreSimpleSpecification genre_specification =1;
+}
+
+message CreateGenreSimpleSpecificationResponse {
+    int64 genre_specification_id = 1;
+}
+
+message DeleteGenreSimpleSpecificationRequest {
+    int64 genre_specification_id = 1;
+}
+
+// Age Group
+message CreateAgeGroupSimpleSpecificationRequest {
+    common.AgeGroupSimpleSpecification age_group_specification =1;
+}
+
+message CreateAgeGroupSimpleSpecificationResponse {
+    int64 age_group_specification_id = 1;
+}
+
+message DeleteAgeGroupSimpleSpecificationRequest {
+    int64 age_group_specification_id = 1;
+}
+
+// Banner
+message CreateBannerSimpleSpecificationRequest {
+    common.BannerSimpleSpecification banner_specification =1;
+}
+
+message CreateBannerSimpleSpecificationResponse {
+    int64 banner_specification_id = 1;
+}
+
+message DeleteBannerSimpleSpecificationRequest {
+    int64 banner_specification_id = 1;
+}
+
+// Festival
+message CreateFestivalSimpleSpecificationRequest {
+    common.FestivalSimpleSpecification festival_specification =1;
+}
+
+message CreateFestivalSimpleSpecificationResponse {
+    int64 festival_specification_id = 1;
+}
+
+message DeleteFestivalSimpleSpecificationRequest {
+    int64 festival_specification_id = 1;
+}
+
+// FestivalEvent
+message CreateFestivalEventSimpleSpecificationRequest {
+    common.FestivalEventSimpleSpecification festival_event_specification =1;
+}
+
+message CreateFestivalEventSimpleSpecificationResponse {
+    int64 festival_event_specification_id = 1;
+}
+
+message DeleteFestivalEventSimpleSpecificationRequest {
+    int64 festival_event_specification_id = 1;
+}
+
+// Scenes
+message CreateScenesSimpleSpecificationRequest {
+    common.ScenesSimpleSpecification scenes_specification =1;
+}
+
+message CreateScenesSimpleSpecificationResponse {
+    int64 scenes_specification_id = 1;
+}
+
+message DeleteScenesSimpleSpecificationRequest {
+    int64 scenes_specification_id = 1;
+}
+
+// ReleaseAt
+message CreateReleaseAtSimpleSpecificationRequest {
+    common.ReleaseAtSimpleSpecification release_at_specification =1;
+}
+
+message CreateReleaseAtSimpleSpecificationResponse {
+    int64 release_at_specification_id = 1;
+}
+
+message DeleteReleaseAtSimpleSpecificationRequest {
+    int64 release_at_specification_id = 1;
+}
+
+// ReleaseRange
+message CreateReleaseRangeSimpleSpecificationRequest {
+    common.ReleaseRangeSimpleSpecification release_range_specification =1;
+}
+
+message CreateReleaseRangeSimpleSpecificationResponse {
+    int64 release_range_specification_id = 1;
+}
+
+message DeleteReleaseRangeSimpleSpecificationRequest {
+    int64 release_range_specification_id = 1;
+}

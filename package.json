@@ -1,0 +1,30 @@
+{
+  "name": "proto-to-typescript",
+  "version": "0.0.1",
+  "main": "dist/app.js",
+  "types": "dist/app.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "17.0.41",
+    "typescript": "^3.4.1"
+  },
+  "scripts": {
+    "start": "node out/app.js",
+    "prestart": "npm run build",
+    "build": "tsc"
+  },
+  "keywords": [
+    "protobuf",
+    "Typescript"
+  ],
+  "author": "reza zare",
+  "license": "MIT",
+  "dependencies": {
+    "protobufjs": "^7.2.2",
+    "ts-poet": "^6.3.0",
+    "ts-proto-descriptors": "^1.7.1",
+    "write": "^2.0.0"
+  }
+}
