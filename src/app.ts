@@ -1,9 +1,15 @@
-import { generate } from "./generate/generate";
+import { protoToTs } from "./generate/protoToTs";
 
 class App {
-  public async start() {
-    generate("./pb/v1", "./src/service/v1", "./src/dist/v1");
+  static async start() {
+    protoToTs({
+      protobufPath: "./pb/v1",
+      generatedTypescriptPath: "./src/service/v1",
+      outPath: "./src/dist/v1",
+      globalFilePath: "./src/dist/global",
+      apiPath: "https://vodteam.com/api",
+    });
   }
 }
 
-new App().start();
+App.start();

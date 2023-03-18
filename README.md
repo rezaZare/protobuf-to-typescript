@@ -1,2 +1,3 @@
 # protobuf-to-typescript
-This project converts the protobuf file into a typescript class.
+
+This project converts the protobuf file to a typescript class

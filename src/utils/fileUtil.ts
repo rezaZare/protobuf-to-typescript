@@ -6,6 +6,7 @@ import {
   CodeBlock,
   FieldType,
   FileInfoType,
+  GlobalFilesType,
   ImportedType,
   ListOfFileTypes,
 } from "../generate/model";
@@ -29,7 +30,9 @@ export class FileUtil {
             _codes.push(...imported);
           }
           _codes = getCode(file.codeBlock, file);
-
+          if (file?.ServiceType?.code) {
+            _codes.push(file.ServiceType.code);
+          }
           let codes = joinCode(_codes, { on: "\n" }).toString();
           if (file.importedType?.length > 0) {
             let iii = `import * as ${file.importedType[0].name} from '${file.importedType[0].import.source}'`;
@@ -49,6 +52,73 @@ export class FileUtil {
         }
       }
     }
+  }
+  public async writeGlobalFiles(model: GlobalFilesType, path: string) {
+    if (model.apiPathCode) {
+      await writeUtil.sync(
+        path + "/" + "apiPath.ts",
+        model.apiPathCode.toString(),
+        {
+          newline: true,
+          overwrite: true,
+        }
+      );
+    }
+    if (model.responseModel) {
+      await writeUtil.sync(
+        path + "/" + "responseModel.ts",
+        model.responseModel.toString(),
+        {
+          newline: true,
+          overwrite: true,
+        }
+      );
+    }
+    if (model.enabledDevMode) {
+      await writeUtil.sync(
+        path + "/" + "enableDevMode.ts",
+        model.enabledDevMode.toString(),
+        {
+          newline: true,
+          overwrite: true,
+        }
+      );
+    }
+    if (model.metadata) {
+      await writeUtil.sync(
+        path + "/" + "metadata.ts",
+        model.metadata.toString(),
+        {
+          newline: true,
+          overwrite: true,
+        }
+      );
+    }
+    if (model.toProto) {
+      await writeUtil.sync(
+        path + "/" + "toProto.ts",
+        model.toProto.toString(),
+        {
+          newline: true,
+          overwrite: true,
+        }
+      );
+    }
+    await writeUtil.sync(
+      path + "/" + "index.ts",
+      `
+    export { srvPath } from "./apiPath";
+    export { enabledDevMode } from "./enableDevMode";
+    export { mergeMetaData } from "./metadata";
+    export type { MetaData } from "./metadata";
+    export { toProto } from "./toProto";
+    export { default as ResponseModel } from "./responseModel";
+    `,
+      {
+        newline: true,
+        overwrite: true,
+      }
+    );
   }
 }
 

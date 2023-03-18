@@ -1,18 +1,28 @@
 import * as fs from "fs";
 import * as path from "path";
 import protobuf from "protobufjs";
-import { Import } from "ts-poet";
+import { imp, Import } from "ts-poet";
 import { FileUtil } from "../../utils/fileUtil";
 
-import { blockType, CodeBlock, FileInfoType, ListOfFileTypes } from "../model";
+import {
+  blockType,
+  CodeBlock,
+  FileInfoType,
+  ListOfFileTypes,
+  PathInfo,
+  ServiceType,
+} from "../model";
 
 import { generateImportCode } from "../imports/generateImportCode";
 import { generateTypes } from "../types/generateTypes";
+import { generateService } from "../service/service";
+import { getFileName } from "../../utils/extension";
 
 export async function fileToBlock(
   root,
   grpcPath,
-  outPath
+  outPath,
+  globalpath
 ): Promise<FileInfoType[]> {
   let result: FileInfoType[] = [];
   //read file
@@ -22,13 +32,31 @@ export async function fileToBlock(
     let nestedDirectory: FileInfoType[] = [];
 
     let codeBlocks: CodeBlock[] = [];
+    let service: ServiceType;
     let imports: Import[] = [];
     let pathResolved = "";
+    let fileName = getFileName(dirent.name);
+
+    const servicePath = fileName + "ServiceClientPb.ts";
+    let filepath: PathInfo = {
+      outPath: outPath,
+      pbName: dirent.name,
+      grpcPb: fileName + "_pb.js",
+      grpcServicePb: servicePath,
+      path: root,
+      tsName: fileName + ".ts",
+      grpcPath: grpcPath,
+      pathResolved: pathResolved,
+      globalpath: globalpath,
+      fileName: fileName,
+    };
+
     if (isDirectory) {
       nestedDirectory = await fileToBlock(
         root + "/" + dirent.name,
         grpcPath + "/" + dirent.name,
-        outPath + "/" + dirent.name
+        outPath + "/" + dirent.name,
+        globalpath
       );
     } else {
       //Fill Imports and codes
@@ -40,24 +68,22 @@ export async function fileToBlock(
           imports = generateImportCode(parsed.imports);
         }
       }
-      codeBlocks = await getCodeBlocks(pathResolved, imports);
+
+      let blocks = await getCodeBlocks(pathResolved, imports, filepath);
+      if (blocks) {
+        codeBlocks = blocks.types;
+        service = blocks.services;
+      }
     }
+
     result.push({
-      path: {
-        outPath: outPath,
-        pbName: dirent.name,
-        grpcPb: dirent.name.replace(".proto", "_pb.js"),
-        grpcServicePb: dirent.name.replace(".proto", "ServiceClientPb.ts"),
-        path: root,
-        tsName: dirent.name.replace(".proto", ".ts"),
-        grpcPath: grpcPath,
-        pathResolved: pathResolved,
-      },
+      path: filepath,
       name: dirent.name.replace(".proto", ""),
       isDirectory: isDirectory,
       nested: nestedDirectory,
       imports: imports,
       codeBlock: codeBlocks,
+      ServiceType: service,
       typeList: getAllTypes(codeBlocks),
       importedType: [],
     });
@@ -65,11 +91,20 @@ export async function fileToBlock(
 
   return result;
 }
-async function getCodeBlocks(filePath: string, imports: Import[]) {
+async function getCodeBlocks(
+  filePath: string,
+  imports: Import[],
+  filepath: PathInfo
+) {
   let loadedProto = await protobuf.loadSync(filePath);
   if (loadedProto) {
-    debugger;
-    return generateTypes(loadedProto, imports);
+    let types = generateTypes(loadedProto, imports);
+    let services = generateService(loadedProto, filepath);
+
+    return {
+      types,
+      services,
+    };
   }
   return undefined;
 }

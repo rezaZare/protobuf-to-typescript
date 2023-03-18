@@ -1,4 +1,12 @@
-import { Import } from "ts-poet";
+import { Code, Import } from "ts-poet";
+
+export type ProtoToTsModel = {
+  protobufPath: string;
+  generatedTypescriptPath: string;
+  outPath: string;
+  globalFilePath: string;
+  apiPath: string;
+};
 
 export type ImportedType = {
   name: string;
@@ -46,9 +54,11 @@ export type FileInfoType = {
   codeBlock: CodeBlock[];
   typeList: ListOfFileTypes[];
   importedType?: ImportedType[];
+  ServiceType?: ServiceType;
 };
 
 export type PathInfo = {
+  fileName: string;
   tsName: string;
   pbName: string;
   grpcPb: string;
@@ -57,4 +67,24 @@ export type PathInfo = {
   path: string;
   grpcPath: string;
   pathResolved?: string;
+  globalpath: string;
+};
+
+export interface MethodType {
+  name: string;
+  requestType: string;
+  responseType: string;
+  code?: Code;
+}
+export interface ServiceType {
+  methods: MethodType[];
+  code: Code;
+}
+
+export type GlobalFilesType = {
+  apiPathCode: Code;
+  enabledDevMode: Code;
+  metadata: Code;
+  responseModel: Code;
+  toProto: Code;
 };

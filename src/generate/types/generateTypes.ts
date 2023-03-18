@@ -1,6 +1,8 @@
 import protobuf from "protobufjs";
 import { Code, Import } from "ts-poet";
 import { CodeBlock } from "../model";
+
+import { generateService } from "../service/service";
 import { generateEnum } from "./generateEnum";
 import { toType } from "./toType";
 
@@ -17,7 +19,7 @@ export function generateTypes(element, imports: Import[]) {
     if (typeof element == "object") {
       for (const [key, value] of Object.entries(element)) {
         if (value instanceof protobuf.Service) {
-          //generateMethod(value);
+          // debugger;
         } else if (value instanceof protobuf.Type) {
           let _type = toType(value, imports);
           codeBlocks.push(..._type.codeBlocks);
