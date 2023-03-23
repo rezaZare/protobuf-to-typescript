@@ -1,4 +1,5 @@
 import { Code, Import } from "ts-poet";
+import { Service } from "./service/service";
 
 export type ProtoToTsModel = {
   protobufPath: string;
@@ -14,6 +15,8 @@ export type ImportedType = {
   types: ListOfFileTypes[];
   fieldType: FieldType[];
   import?: Import; // use imp ts-pooet
+  importStr: string;
+  filePath?: PathInfo;
 };
 
 export enum blockType {
@@ -31,14 +34,16 @@ export type FieldType = {
   typeValid: boolean;
   isSystemType?: boolean;
   needImport?: boolean;
+  importedFiledType?: ListOfFileTypes;
 };
-export interface ListOfFileTypes {
+export class ListOfFileTypes {
   isNamespace: boolean;
   name: string;
   nested?: ListOfFileTypes[];
-  fieldType?: FieldType;
+  fields?: FieldType[];
+  type?: blockType;
 }
-export interface CodeBlock {
+export class CodeBlock {
   name: string;
   blockType: blockType;
   fields?: FieldType[];
@@ -54,7 +59,7 @@ export type FileInfoType = {
   codeBlock: CodeBlock[];
   typeList: ListOfFileTypes[];
   importedType?: ImportedType[];
-  ServiceType?: ServiceType;
+  Service?: Service;
 };
 
 export type PathInfo = {
@@ -62,7 +67,7 @@ export type PathInfo = {
   tsName: string;
   pbName: string;
   grpcPb: string;
-  grpcServicePb: String;
+  grpcServicePb: string;
   outPath: string;
   path: string;
   grpcPath: string;

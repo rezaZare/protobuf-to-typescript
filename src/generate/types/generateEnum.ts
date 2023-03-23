@@ -22,10 +22,7 @@ export function generateEnum(element: protobuf.Enum) {
   }
   // codes.push(code`}`);
 
-  return {
-    codes: [], //codes,
-    enumBlock: enumBlock,
-  };
+  return enumBlock;
 }
 
 export function generateEnumCode(blocks: CodeBlock) {

@@ -30,8 +30,11 @@ export class FileUtil {
             _codes.push(...imported);
           }
           _codes = getCode(file.codeBlock, file);
-          if (file?.ServiceType?.code) {
-            _codes.push(file.ServiceType.code);
+          if (file?.Service) {
+            let serviceTypeCode = file.Service.generate(file.importedType);
+            if (serviceTypeCode) {
+              _codes.push(serviceTypeCode);
+            }
           }
           let codes = joinCode(_codes, { on: "\n" }).toString();
           if (file.importedType?.length > 0) {
@@ -157,11 +160,12 @@ function gernerateTypeCode(block: CodeBlock, fileInfo?: FileInfoType) {
     } else {
       _type = field.type; //getType(field, fileInfo);
     }
-    codes.push(
-      code`${field.name}${field.isoptional ? "?" : ""}: ${_type} ${
-        field.isRepeated ? "[]" : ""
-      };`
-    );
+
+    let codeField = `${field.name}${field.isRepeated ? "List" : ""}${
+      field.isoptional ? "?" : ""
+    }: ${field.isRepeated ? "Array<" + _type + ">" : _type};`;
+
+    codes.push(code`${codeField}`);
   }
   codes.push(code`}`);
   return codes;

@@ -1,4 +1,11 @@
-import { blockType, CodeBlock, FileInfoType, ListOfFileTypes } from "../model";
+import {
+  blockType,
+  CodeBlock,
+  FieldType,
+  FileInfoType,
+  ListOfFileTypes,
+} from "../model";
+import { getBlockTypes } from "./typeUtil";
 
 export function typeCheckAndFix(fileBlocks: FileInfoType[]) {
   fileBlocks = internalType(fileBlocks);
@@ -12,7 +19,7 @@ function internalType(fileBlocks: FileInfoType[]) {
       fileBlock.codeBlock = fixType(
         fileBlock.codeBlock,
         [],
-        getTypeList(fileBlock.codeBlock)
+        getBlockTypes(fileBlock.codeBlock)
       );
     } else if (fileBlock.nested?.length > 0) {
       fileBlock.nested = internalType(fileBlock.nested);
@@ -20,7 +27,6 @@ function internalType(fileBlocks: FileInfoType[]) {
   });
   return fileBlocks;
 }
-
 function fixType(
   codeBlock: CodeBlock[],
   typeOfList?: string[],
@@ -29,7 +35,7 @@ function fixType(
   if (codeBlock.length <= 0) return [];
   codeBlock.forEach((block) => {
     if (block.blockType === blockType.NAMESPACE) {
-      let listOfType = getTypeList(block.blocks);
+      let listOfType = getBlockTypes(block.blocks);
 
       block.blocks = fixType(block.blocks, listOfType, alltype);
     } else if (block.blockType === blockType.TYPE) {
@@ -37,16 +43,20 @@ function fixType(
         if (!field.typeValid) {
           if (typeOfList?.includes(field.type)) {
             field.typeValid = true;
+            field.isoptional = checkOptionalField(field);
           } else if (typeOfList?.includes(field.type + "." + field.type)) {
             field.type = field.type + "." + field.type;
             field.typeValid = true;
+            field.isoptional = checkOptionalField(field);
           } else {
             if (alltype.includes(field.type)) {
               field.typeValid = true;
+              field.isoptional = checkOptionalField(field);
             }
             if (alltype.includes(field.type + "." + field.type)) {
               field.type = field.type + "." + field.type;
               field.typeValid = true;
+              field.isoptional = checkOptionalField(field);
             }
           }
         }
@@ -55,22 +65,6 @@ function fixType(
   });
 
   return codeBlock;
-}
-
-function getTypeList(blocks?: CodeBlock[]) {
-  let types: string[] = [];
-  for (let block of blocks) {
-    if (block.blockType == blockType.NAMESPACE) {
-      let name = block.name;
-      types.push(...getTypeList(block.blocks).map((x) => name + "." + x));
-    } else if (
-      block.blockType == blockType.TYPE ||
-      block.blockType == blockType.ENUM
-    ) {
-      types.push(block.name);
-    }
-  }
-  return types;
 }
 
 function externalType(fileBlocks: FileInfoType[]) {
@@ -88,21 +82,26 @@ function externalType(fileBlocks: FileInfoType[]) {
 }
 
 function getTypeListByTypes(blocks: ListOfFileTypes[]) {
-  let types: string[] = [];
+  let types = new Map<string, ListOfFileTypes>();
   for (let block of blocks) {
     if (block.isNamespace) {
       let name = block.name;
-      types.push(
-        ...getTypeListByTypes(block.nested).map((x) => name + "." + x)
-      );
+      let mapBlockTypes = getTypeListByTypes(block.nested);
+
+      mapBlockTypes.forEach((value, key) => {
+        types.set(name + "." + key, value);
+      });
     } else {
-      types.push(block.name);
+      types.set(block.name, block);
     }
   }
   return types;
 }
 
-function fixExternalType(codeBlock: CodeBlock[], typeList: string[]) {
+function fixExternalType(
+  codeBlock: CodeBlock[],
+  typeList: Map<string, ListOfFileTypes>
+) {
   if (codeBlock.length <= 0) return [];
   codeBlock.forEach((block) => {
     if (block.blockType === blockType.NAMESPACE) {
@@ -118,15 +117,33 @@ function fixExternalType(codeBlock: CodeBlock[], typeList: string[]) {
             prefix = typeSpl.join(".");
           }
 
-          if (typeList?.includes(_type)) {
+          if (typeList?.get(_type)) {
             field.typeValid = true;
-          } else if (typeList?.includes(_type + "." + _type)) {
+            field.importedFiledType = typeList?.get(_type);
+            field.isoptional = checkOptionalField(field);
+          } else if (typeList?.get(_type + "." + _type)) {
             field.type = `${prefix ? prefix + "." : ""}${_type}.${_type}`;
             field.typeValid = true;
+            field.importedFiledType = typeList?.get(_type + "." + _type);
+            field.isoptional = checkOptionalField(field);
           }
         }
       });
     }
   });
   return codeBlock;
+}
+
+function checkOptionalField(field: FieldType) {
+  if (field.isoptional) return true;
+  if (field.isRepeated) return field.isoptional;
+  if (!field.isSystemType) {
+    return true;
+  }
+  // if (field.type.includes(".")) {
+  //   if (field.importedFiledType?.type == blockType.TYPE) {
+  //     return true;
+  //   }
+  // }
+  return field.isoptional;
 }

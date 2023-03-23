@@ -15,5 +15,5 @@
         "types": ["node","jest"],
         "declaration": false,
     },
-    "exclude":["/node_modules","src/service","oldCode","jest.config.ts" , "src/test" , "src/dist"]
+    "exclude":["/node_modules","jest.config.ts","sample","test"]
 }

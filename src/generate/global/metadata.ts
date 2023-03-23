@@ -9,7 +9,7 @@ export function generateMetadata() {
 
 export function mergeMetaData(metaData: MetaData): MetaData {
   const authorization = localStorage.getItem("token");
-  if (authorization?.length > 0) {
+  if (authorization && authorization?.length > 0) {
     console.log("token", { ...metaData, authorization });
     return { ...metaData, authorization };
   }
