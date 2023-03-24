@@ -26,7 +26,6 @@ export class FileUtil {
           let _codes: Code[] = [];
           if (file.importedType?.length > 0) {
             const imported = generateImport(file.importedType);
-
             _codes.push(...imported);
           }
           _codes = getCode(file.codeBlock, file);
@@ -38,8 +37,14 @@ export class FileUtil {
           }
           let codes = joinCode(_codes, { on: "\n" }).toString();
           if (file.importedType?.length > 0) {
-            let iii = `import * as ${file.importedType[0].name} from '${file.importedType[0].import.source}'`;
-            codes = iii + "\n" + codes;
+            for (let importedFile of file.importedType) {
+              if (importedFile.importStr?.length > 0) {
+                codes = importedFile.importStr + "\n" + codes;
+              } else {
+                let iii = `import * as ${importedFile.name} from '${importedFile.import.source}'`;
+                codes = iii + "\n" + codes;
+              }
+            }
           }
 
           if (codes) {
@@ -158,14 +163,21 @@ function gernerateTypeCode(block: CodeBlock, fileInfo?: FileInfoType) {
     if (field.typeValid) {
       _type = field.type;
     } else {
-      _type = field.type; //getType(field, fileInfo);
+      _type = field.type; //getType(field, fileInfo); TODO:
     }
-
-    let codeField = `${field.name}${field.isRepeated ? "List" : ""}${
-      field.isoptional ? "?" : ""
-    }: ${field.isRepeated ? "Array<" + _type + ">" : _type};`;
-
-    codes.push(code`${codeField}`);
+    if (field.isMap) {
+      codes.push(
+        code`${field.name}${field.isoptional ? "?" : ""}: Array<[${
+          field.keyType
+        },${field.type}]>;`
+      );
+    } else {
+      codes.push(
+        code`${field.name}${field.isRepeated ? "List" : ""}${
+          field.isoptional ? "?" : ""
+        }: ${field.isRepeated ? "Array<" + _type + ">" : _type};`
+      );
+    }
   }
   codes.push(code`}`);
   return codes;

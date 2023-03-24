@@ -8,23 +8,19 @@ exports.generateEnumCode = exports.generateEnum = void 0;
 var ts_poet_1 = require("ts-poet");
 var model_1 = require("../model");
 function generateEnum(element) {
-    // const codes: Code[] = [];
     var enumBlock = {
         blockType: model_1.blockType.ENUM,
         name: element.name,
         fields: [],
     };
-    // codes.push(code`export enum ${element.name} {`);
     for (var _i = 0, _a = Object.entries(element.values); _i < _a.length; _i++) {
         var _b = _a[_i], key = _b[0], value = _b[1];
-        // codes.push(code`${key}= ${value},`);
         enumBlock.fields.push({
-            name: key,
+            name: key.toUpperCase(),
             value: value.toString(),
             typeValid: true,
         });
     }
-    // codes.push(code`}`);
     return enumBlock;
 }
 exports.generateEnum = generateEnum;

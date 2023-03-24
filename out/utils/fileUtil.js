@@ -86,15 +86,15 @@ var FileUtil = /** @class */ (function () {
         });
     };
     FileUtil.prototype.write = function (files) {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var _i, files_1, file, _codes, imported, serviceTypeCode, codes, iii;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var _i, files_1, file, _codes, imported, serviceTypeCode, codes, _d, _e, importedFile, iii;
+            return __generator(this, function (_f) {
+                switch (_f.label) {
                     case 0:
                         if (!((files === null || files === void 0 ? void 0 : files.length) > 0)) return [3 /*break*/, 5];
                         _i = 0, files_1 = files;
-                        _c.label = 1;
+                        _f.label = 1;
                     case 1:
                         if (!(_i < files_1.length)) return [3 /*break*/, 5];
                         file = files_1[_i];
@@ -116,8 +116,16 @@ var FileUtil = /** @class */ (function () {
                         }
                         codes = (0, ts_poet_1.joinCode)(_codes, { on: "\n" }).toString();
                         if (((_b = file.importedType) === null || _b === void 0 ? void 0 : _b.length) > 0) {
-                            iii = "import * as ".concat(file.importedType[0].name, " from '").concat(file.importedType[0].import.source, "'");
-                            codes = iii + "\n" + codes;
+                            for (_d = 0, _e = file.importedType; _d < _e.length; _d++) {
+                                importedFile = _e[_d];
+                                if (((_c = importedFile.importStr) === null || _c === void 0 ? void 0 : _c.length) > 0) {
+                                    codes = importedFile.importStr + "\n" + codes;
+                                }
+                                else {
+                                    iii = "import * as ".concat(importedFile.name, " from '").concat(importedFile.import.source, "'");
+                                    codes = iii + "\n" + codes;
+                                }
+                            }
                         }
                         if (!codes) return [3 /*break*/, 4];
                         return [4 /*yield*/, writeUtil.sync(file.path.outPath + "/" + file.path.tsName, codes, {
@@ -125,8 +133,8 @@ var FileUtil = /** @class */ (function () {
                                 overwrite: true,
                             })];
                     case 3:
-                        _c.sent();
-                        _c.label = 4;
+                        _f.sent();
+                        _f.label = 4;
                     case 4:
                         _i++;
                         return [3 /*break*/, 1];
@@ -232,12 +240,16 @@ function gernerateTypeCode(block, fileInfo) {
             _type = field.type;
         }
         else {
-            _type = field.type; //getType(field, fileInfo);
+            _type = field.type; //getType(field, fileInfo); TODO:
         }
-        var codeField = "".concat(field.name).concat(field.isRepeated ? "List" : "").concat(field.isoptional ? "?" : "", ": ").concat(field.isRepeated ? "Array<" + _type + ">" : _type, ";");
-        codes.push((0, ts_poet_1.code)(templateObject_4 || (templateObject_4 = __makeTemplateObject(["", ""], ["", ""])), codeField));
+        if (field.isMap) {
+            codes.push((0, ts_poet_1.code)(templateObject_4 || (templateObject_4 = __makeTemplateObject(["", "", ": Array<[", ",", "]>;"], ["", "", ": Array<[", ",", "]>;"])), field.name, field.isoptional ? "?" : "", field.keyType, field.type));
+        }
+        else {
+            codes.push((0, ts_poet_1.code)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["", "", "", ": ", ";"], ["", "", "", ": ", ";"])), field.name, field.isRepeated ? "List" : "", field.isoptional ? "?" : "", field.isRepeated ? "Array<" + _type + ">" : _type));
+        }
     }
-    codes.push((0, ts_poet_1.code)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["}"], ["}"]))));
+    codes.push((0, ts_poet_1.code)(templateObject_6 || (templateObject_6 = __makeTemplateObject(["}"], ["}"]))));
     return codes;
 }
 function getType(field, fileInfo) {
@@ -295,9 +307,9 @@ function generateImport(importedType) {
     var codes = [];
     for (var _i = 0, importedType_1 = importedType; _i < importedType_1.length; _i++) {
         var _import = importedType_1[_i];
-        codes.push((0, ts_poet_1.code)(templateObject_6 || (templateObject_6 = __makeTemplateObject(["", ""], ["", ""])), _import.import));
+        codes.push((0, ts_poet_1.code)(templateObject_7 || (templateObject_7 = __makeTemplateObject(["", ""], ["", ""])), _import.import));
     }
     return codes;
 }
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6;
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7;
 //# sourceMappingURL=fileUtil.js.map

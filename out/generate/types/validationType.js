@@ -32,24 +32,32 @@ function fixType(codeBlock, typeOfList, alltype) {
         else if (block.blockType === model_1.blockType.TYPE) {
             block.fields.forEach(function (field) {
                 if (!field.typeValid) {
+                    var typeSpl = field.type.split(".");
+                    var type = typeSpl[typeSpl.length - 1];
                     if (typeOfList === null || typeOfList === void 0 ? void 0 : typeOfList.includes(field.type)) {
                         field.typeValid = true;
                         field.isoptional = checkOptionalField(field);
                     }
-                    else if (typeOfList === null || typeOfList === void 0 ? void 0 : typeOfList.includes(field.type + "." + field.type)) {
+                    else if (typeOfList === null || typeOfList === void 0 ? void 0 : typeOfList.includes(field.type + "." + type)) {
                         field.type = field.type + "." + field.type;
                         field.typeValid = true;
                         field.isoptional = checkOptionalField(field);
                     }
-                    else {
-                        if (alltype.includes(field.type)) {
-                            field.typeValid = true;
-                            field.isoptional = checkOptionalField(field);
+                    else if (alltype.includes(field.type)) {
+                        field.typeValid = true;
+                        field.isoptional = checkOptionalField(field);
+                    }
+                    if (alltype.includes(field.type + "." + type)) {
+                        field.type = field.type + "." + field.type;
+                        field.typeValid = true;
+                        field.isoptional = checkOptionalField(field);
+                    }
+                    if (field.isMap) {
+                        if (typeOfList === null || typeOfList === void 0 ? void 0 : typeOfList.includes(field.keyType + "." + type)) {
+                            field.keyType = field.keyType + "." + field.keyType;
                         }
-                        if (alltype.includes(field.type + "." + field.type)) {
-                            field.type = field.type + "." + field.type;
-                            field.typeValid = true;
-                            field.isoptional = checkOptionalField(field);
+                        else if (alltype.includes(field.keyType + "." + type)) {
+                            field.type = field.keyType + "." + field.keyType;
                         }
                     }
                 }

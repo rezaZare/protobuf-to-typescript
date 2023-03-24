@@ -23,7 +23,14 @@ export class FileInfo {
   files: FileInfoType[];
   allType: ImportedType[];
   async load(root, grpcPath, outPath, globalpath) {
-    this.files = await this.loadInfo(root, grpcPath, outPath, globalpath);
+    let ignoreList = await this.getProtoIgnoreList();
+    this.files = await this.loadInfo(
+      root,
+      grpcPath,
+      outPath,
+      globalpath,
+      ignoreList
+    );
     this.allType = this.getAllType(this.files);
     this.files = this.getImportedTypes(this.files, this.allType);
   }
@@ -31,13 +38,15 @@ export class FileInfo {
     root,
     grpcPath,
     outPath,
-    globalpath
+    globalpath,
+    ignoreList: string[]
   ): Promise<FileInfoType[]> {
     let result: FileInfoType[] = [];
     let directorys = await fs.readdirSync(root, { withFileTypes: true });
 
     for (let dirent of directorys) {
       const isDirectory = dirent.isDirectory();
+
       let nestedDirectory: FileInfoType[] = [];
       let typeBlocks: CodeBlock[] = [];
       let service: Service;
@@ -57,20 +66,23 @@ export class FileInfo {
         globalpath: globalpath,
         fileName: fileName,
       };
+
       if (isDirectory) {
         nestedDirectory = await this.loadInfo(
           root + "/" + dirent.name,
           grpcPath + "/" + dirent.name,
           outPath + "/" + dirent.name,
-          globalpath
+          globalpath,
+          ignoreList
         );
       } else {
+        if (!this.isValidFile(root + "/" + dirent.name, ignoreList)) continue;
+
         //Fill Imports and codes
         pathResolved = path.resolve(root + "/" + dirent.name);
-        let data = await new FileUtil().read(pathResolved);
-        if (data) {
-          let parsed = protobuf.parse(data);
-
+        let protobufStr = await new FileUtil().read(pathResolved);
+        if (protobufStr) {
+          let parsed = protobuf.parse(protobufStr);
           if (parsed.imports?.length > 0) {
             imports = generateImportCode(parsed.imports);
           }
@@ -78,7 +90,7 @@ export class FileInfo {
 
         let protoBuf = await this.loadProtoBuf(pathResolved);
         if (protoBuf) {
-          typeBlocks = generateTypes(protoBuf, imports);
+          typeBlocks = generateTypes(protoBuf);
           service = new Service(protoBuf, pathInfo);
         }
       }
@@ -154,6 +166,18 @@ export class FileInfo {
       } else {
         file.importedType = [];
         file.imports.forEach((imp) => {
+          if (imp.symbol == "google") {
+            file.importedType.push({
+              import: imp,
+              name: imp.symbol,
+              fileName: "google-protobuf",
+              fieldType: [],
+              importStr: `import * as google from "google-protobuf"`,
+              types: [],
+            });
+            return;
+          }
+
           let spl = imp.source.split("/");
           let fileName = spl[spl.length - 1];
           let importedTypes = allTypes.filter((x) => x.fileName == fileName);
@@ -170,5 +194,25 @@ export class FileInfo {
       }
     });
     return files;
+  }
+
+  private async getProtoIgnoreList() {
+    let pathResolved = path.resolve("./.protoIgnore");
+    if (fs.existsSync(pathResolved)) {
+      let data = await new FileUtil().read(pathResolved);
+      if (data) {
+        return data.split(/\r?\n/);
+      }
+    }
+    return [];
+  }
+  private isValidFile(fileName: string, ignoreList: string[]) {
+    if (!fileName.endsWith(".proto")) return false;
+    if (ignoreList.includes(fileName)) {
+      debugger;
+      return false;
+    }
+
+    return true;
   }
 }

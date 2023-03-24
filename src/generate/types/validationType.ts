@@ -41,22 +41,30 @@ function fixType(
     } else if (block.blockType === blockType.TYPE) {
       block.fields.forEach((field) => {
         if (!field.typeValid) {
+          let typeSpl = field.type.split(".");
+          let type = typeSpl[typeSpl.length - 1];
           if (typeOfList?.includes(field.type)) {
             field.typeValid = true;
             field.isoptional = checkOptionalField(field);
-          } else if (typeOfList?.includes(field.type + "." + field.type)) {
+          } else if (typeOfList?.includes(field.type + "." + type)) {
             field.type = field.type + "." + field.type;
             field.typeValid = true;
             field.isoptional = checkOptionalField(field);
-          } else {
-            if (alltype.includes(field.type)) {
-              field.typeValid = true;
-              field.isoptional = checkOptionalField(field);
-            }
-            if (alltype.includes(field.type + "." + field.type)) {
-              field.type = field.type + "." + field.type;
-              field.typeValid = true;
-              field.isoptional = checkOptionalField(field);
+          } else if (alltype.includes(field.type)) {
+            field.typeValid = true;
+            field.isoptional = checkOptionalField(field);
+          }
+          if (alltype.includes(field.type + "." + type)) {
+            field.type = field.type + "." + field.type;
+            field.typeValid = true;
+            field.isoptional = checkOptionalField(field);
+          }
+
+          if (field.isMap) {
+            if (typeOfList?.includes(field.keyType + "." + type)) {
+              field.keyType = field.keyType + "." + field.keyType;
+            } else if (alltype.includes(field.keyType + "." + type)) {
+              field.type = field.keyType + "." + field.keyType;
             }
           }
         }
@@ -111,6 +119,7 @@ function fixExternalType(
         if (!field.typeValid) {
           let _type = field.type;
           let prefix = "";
+
           if (field.type.includes(".")) {
             let typeSpl = field.type.split(".");
             _type = typeSpl.splice(typeSpl.length - 1, 1)[0];
@@ -140,6 +149,7 @@ function checkOptionalField(field: FieldType) {
   if (!field.isSystemType) {
     return true;
   }
+
   // if (field.type.includes(".")) {
   //   if (field.importedFiledType?.type == blockType.TYPE) {
   //     return true;

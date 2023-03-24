@@ -28,9 +28,11 @@ export enum blockType {
 export type FieldType = {
   name: string;
   type?: string;
+  isMap?: boolean;
+  keyType?: string; // key type use for map
+  value?: string; //use for enum
   isRepeated?: boolean;
   isoptional?: boolean;
-  value?: string; //use for enum
   typeValid: boolean;
   isSystemType?: boolean;
   needImport?: boolean;

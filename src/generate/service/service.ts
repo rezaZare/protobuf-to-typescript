@@ -52,6 +52,7 @@ export class Service {
     let globalImport = `import * as global from '${globalRelativePath}'`;
 
     for (let importType of importedType) {
+      if (!importType.filePath || !importType.filePath.outPath) continue;
       let importedGrpcPath = path.relative(
         importType.filePath.outPath,
         importType.filePath.grpcPath
@@ -160,6 +161,7 @@ export function reviewServiceType(fileBlocks: FileInfoType[]) {
   fileBlocks.forEach((fileBlock) => {
     if (fileBlock.Service?.methods?.length > 0) {
       let _internalTypes = getTypeListByTypes(fileBlock.typeList);
+
       fileBlock.Service.typeReview(_internalTypes, fileBlock.importedType);
     } else {
       fileBlock.nested = reviewServiceType(fileBlock.nested);

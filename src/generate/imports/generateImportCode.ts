@@ -6,6 +6,11 @@ export function generateImportCode(elements: string[]) {
   if (elements.length > 0) {
     for (let path of elements) {
       if (path.startsWith("google")) {
+        if (!chunks.find((x) => x.symbol == "google")) {
+          let splList = path.split("/");
+          let name = splList.join(".");
+          chunks.push(imp(`google*.${name}`));
+        }
         // protobuff
       } else {
         let splList = path.split("/");

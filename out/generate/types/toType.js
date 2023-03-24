@@ -28,8 +28,9 @@ var protobuf = __importStar(require("protobufjs"));
 var getFieldType_1 = require("./getFieldType");
 var model_1 = require("../model");
 var generateEnum_1 = require("./generateEnum");
+var case_1 = require("../../utils/case");
 //TODO:oneof , type map
-function toType(element, imports) {
+function toType(element) {
     var _a;
     var codeBlocks = [];
     var namespaceBlock;
@@ -42,7 +43,7 @@ function toType(element, imports) {
         for (var _i = 0, _b = Object.entries(element.nested); _i < _b.length; _i++) {
             var _c = _b[_i], key = _c[0], value = _c[1];
             if (value instanceof protobuf.Type) {
-                var _type = toType(value, imports);
+                var _type = toType(value);
                 (_a = namespaceBlock.blocks).push.apply(_a, _type);
             }
             else if (value instanceof protobuf.Enum) {
@@ -63,14 +64,23 @@ function toType(element, imports) {
         for (var _d = 0, _e = Object.entries(element.fields); _d < _e.length; _d++) {
             var _f = _e[_d], key = _f[0], value = _f[1];
             var type = (0, getFieldType_1.getFieldType)(value);
+            var fieldName = key;
+            if (type.isMap) {
+                fieldName = fieldName + "Map";
+            }
+            if (fieldName.includes("wanted")) {
+                fieldName = fieldName.replace(/_/g, "");
+            }
             typeBlock.fields.push({
-                name: checkValidName(key),
+                name: checkValidName((0, case_1.camelize)(fieldName)),
                 type: type.type,
                 isRepeated: value.repeated,
                 isSystemType: type.isSystemType,
                 needImport: type.needImport,
                 typeValid: type.isSystemType ? true : false,
                 isoptional: type.isOptinal,
+                isMap: type.isMap,
+                keyType: type.keyType,
             });
         }
         if (namespaceBlock) {
@@ -88,9 +98,10 @@ function toType(element, imports) {
 }
 exports.toType = toType;
 function checkValidName(name) {
-    if (name == "public") {
+    if (name == "public")
         return "pb_public";
-    }
+    if (name == "long")
+        return "pb_long";
     return name;
 }
 //# sourceMappingURL=toType.js.map

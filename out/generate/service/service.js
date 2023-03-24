@@ -41,6 +41,8 @@ var Service = /** @class */ (function () {
         var globalImport = "import * as global from '".concat(globalRelativePath, "'");
         for (var _i = 0, importedType_1 = importedType; _i < importedType_1.length; _i++) {
             var importType = importedType_1[_i];
+            if (!importType.filePath || !importType.filePath.outPath)
+                continue;
             var importedGrpcPath = path_1.default.relative(importType.filePath.outPath, importType.filePath.grpcPath);
             pbImport += "\n\rimport * as ".concat(importType.name, "_pb from '").concat(importedGrpcPath, "/").concat((0, extension_1.getFileName)(importType.filePath.grpcPb), "';");
         }

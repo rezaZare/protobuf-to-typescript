@@ -29,7 +29,10 @@ export class Method {
 
   private generateMethodCode() {
     let haveRequestModel = true;
-    if (this.requestType == "google.protobuf.Empty") {
+    if (
+      this.requestType == "google.protobuf.Empty" ||
+      this.requestType.toLocaleLowerCase().includes("empty")
+    ) {
       haveRequestModel = false;
     }
     //------------------------------------
@@ -51,7 +54,11 @@ export class Method {
                   global.ResponseModel<${getResponseModel(this.responseType)}>
               >((resolve) => {
                   this.client().${camelize(this.name)}(
-                    ${haveRequestModel ? "reqModel" : "{}"} 
+                    ${
+                      haveRequestModel
+                        ? "reqModel"
+                        : "new google.protobuf.empty()"
+                    } 
                   ,global.mergeMetaData(metaData),
                   (err, response) => {
                       resolve(
@@ -68,59 +75,6 @@ export class Method {
       }`;
   }
 }
-
-// export function generateMethod() {
-//   //, pbName: string
-
-//   this.code = generateMethodCode(this, this.pbName); // TODO: this function must use another function for generate all method Code
-//   return method;
-// }
-
-//TODO: request and response google.protobuf.Empty
-
-//TODO: if requst or response bein in another file must import file
-//TODO:
-
-// export function generateMethodCode(method: MethodType, pbName: string) {
-//   let haveRequestModel = true;
-//   if (method.requestType == "google.protobuf.Empty") {
-//     haveRequestModel = false;
-//   }
-//   //------------------------------------
-
-//   return code`
-//       async ${method.name} (${
-//     haveRequestModel ? "model:" + method.requestType + " ," : ""
-//   } metaData: global.MetaData):Promise<global.ResponseModel<${getResponseModel(
-//     method.responseType
-//   )}>> {
-//         try {
-//            ${
-//              haveRequestModel
-//                ? `const reqModel = global.toProto(${pbName}.${method.requestType},model)`
-//                : ""
-//            }
-
-//             let response = new Promise<
-//                 global.ResponseModel<${getResponseModel(method.responseType)}>
-//             >((resolve) => {
-//                 this.client().${camelize(method.name)}(
-//                   ${haveRequestModel ? "reqModel" : "{}"}
-//                 ,global.mergeMetaData(metaData),
-//                 (err, response) => {
-//                     resolve(
-//                     global.ResponseModel.ToResponModel(err, response?.toObject())
-//                     );
-//                 }
-//                 );
-//             });
-
-//             return await response;
-//         } catch (exp) {
-//             return global.ResponseModel.Error(exp);
-//         }
-//     }`;
-// }
 
 function getResponseModel(responseType) {
   if (responseType === "google.protobuf.Empty") {

@@ -77,13 +77,15 @@ var FileInfo = /** @class */ (function () {
     }
     FileInfo.prototype.load = function (root, grpcPath, outPath, globalpath) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a;
+            var ignoreList, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0:
-                        _a = this;
-                        return [4 /*yield*/, this.loadInfo(root, grpcPath, outPath, globalpath)];
+                    case 0: return [4 /*yield*/, this.getProtoIgnoreList()];
                     case 1:
+                        ignoreList = _b.sent();
+                        _a = this;
+                        return [4 /*yield*/, this.loadInfo(root, grpcPath, outPath, globalpath, ignoreList)];
+                    case 2:
                         _a.files = _b.sent();
                         this.allType = this.getAllType(this.files);
                         this.files = this.getImportedTypes(this.files, this.allType);
@@ -92,10 +94,10 @@ var FileInfo = /** @class */ (function () {
             });
         });
     };
-    FileInfo.prototype.loadInfo = function (root, grpcPath, outPath, globalpath) {
+    FileInfo.prototype.loadInfo = function (root, grpcPath, outPath, globalpath, ignoreList) {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var result, directorys, _i, directorys_1, dirent, isDirectory, nestedDirectory, typeBlocks, service, imports_1, pathResolved, fileName, pathInfo, data, parsed, protoBuf;
+            var result, directorys, _i, directorys_1, dirent, isDirectory, nestedDirectory, typeBlocks, service, imports_1, pathResolved, fileName, pathInfo, protobufStr, parsed, protoBuf;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -128,18 +130,20 @@ var FileInfo = /** @class */ (function () {
                             fileName: fileName,
                         };
                         if (!isDirectory) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.loadInfo(root + "/" + dirent.name, grpcPath + "/" + dirent.name, outPath + "/" + dirent.name, globalpath)];
+                        return [4 /*yield*/, this.loadInfo(root + "/" + dirent.name, grpcPath + "/" + dirent.name, outPath + "/" + dirent.name, globalpath, ignoreList)];
                     case 3:
                         nestedDirectory = _b.sent();
                         return [3 /*break*/, 7];
                     case 4:
+                        if (!this.isValidFile(root + "/" + dirent.name, ignoreList))
+                            return [3 /*break*/, 8];
                         //Fill Imports and codes
                         pathResolved = path.resolve(root + "/" + dirent.name);
                         return [4 /*yield*/, new fileUtil_1.FileUtil().read(pathResolved)];
                     case 5:
-                        data = _b.sent();
-                        if (data) {
-                            parsed = protobufjs_1.default.parse(data);
+                        protobufStr = _b.sent();
+                        if (protobufStr) {
+                            parsed = protobufjs_1.default.parse(protobufStr);
                             if (((_a = parsed.imports) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                                 imports_1 = (0, generateImportCode_1.generateImportCode)(parsed.imports);
                             }
@@ -148,7 +152,7 @@ var FileInfo = /** @class */ (function () {
                     case 6:
                         protoBuf = _b.sent();
                         if (protoBuf) {
-                            typeBlocks = (0, generateTypes_1.generateTypes)(protoBuf, imports_1);
+                            typeBlocks = (0, generateTypes_1.generateTypes)(protoBuf);
                             service = new service_1.Service(protoBuf, pathInfo);
                         }
                         _b.label = 7;
@@ -243,6 +247,17 @@ var FileInfo = /** @class */ (function () {
                 file.importedType = [];
                 file.imports.forEach(function (imp) {
                     var _a;
+                    if (imp.symbol == "google") {
+                        file.importedType.push({
+                            import: imp,
+                            name: imp.symbol,
+                            fileName: "google-protobuf",
+                            fieldType: [],
+                            importStr: "import * as google from \"google-protobuf\"",
+                            types: [],
+                        });
+                        return;
+                    }
                     var spl = imp.source.split("/");
                     var fileName = spl[spl.length - 1];
                     var importedTypes = allTypes.filter(function (x) { return x.fileName == fileName; });
@@ -258,6 +273,35 @@ var FileInfo = /** @class */ (function () {
             }
         });
         return files;
+    };
+    FileInfo.prototype.getProtoIgnoreList = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var pathResolved, data;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        pathResolved = path.resolve("./.protoIgnore");
+                        if (!fs.existsSync(pathResolved)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, new fileUtil_1.FileUtil().read(pathResolved)];
+                    case 1:
+                        data = _a.sent();
+                        if (data) {
+                            return [2 /*return*/, data.split(/\r?\n/)];
+                        }
+                        _a.label = 2;
+                    case 2: return [2 /*return*/, []];
+                }
+            });
+        });
+    };
+    FileInfo.prototype.isValidFile = function (fileName, ignoreList) {
+        if (!fileName.endsWith(".proto"))
+            return false;
+        if (ignoreList.includes(fileName)) {
+            debugger;
+            return false;
+        }
+        return true;
     };
     return FileInfo;
 }());

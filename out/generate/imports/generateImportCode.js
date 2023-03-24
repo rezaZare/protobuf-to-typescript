@@ -8,6 +8,11 @@ function generateImportCode(elements) {
         for (var _i = 0, elements_1 = elements; _i < elements_1.length; _i++) {
             var path_1 = elements_1[_i];
             if (path_1.startsWith("google")) {
+                if (!chunks.find(function (x) { return x.symbol == "google"; })) {
+                    var splList = path_1.split("/");
+                    var name = splList.join(".");
+                    chunks.push((0, ts_poet_1.imp)("google*.".concat(name)));
+                }
                 // protobuff
             }
             else {

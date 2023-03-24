@@ -7,13 +7,13 @@ exports.generateTypes = void 0;
 var protobufjs_1 = __importDefault(require("protobufjs"));
 var generateEnum_1 = require("./generateEnum");
 var toType_1 = require("./toType");
-function generateTypes(element, imports) {
+function generateTypes(element) {
     // const codes: Code[] = [];
-    var codeBlocks = [];
+    var typeBlock = [];
     if (element instanceof protobufjs_1.default.Root) {
         if (element.nested) {
-            var _codes = generateTypes(element.nested, imports);
-            codeBlocks.push.apply(codeBlocks, _codes);
+            var _codes = generateTypes(element.nested);
+            typeBlock.push.apply(typeBlock, _codes);
         }
     }
     else {
@@ -24,17 +24,17 @@ function generateTypes(element, imports) {
                     // debugger;
                 }
                 else if (value instanceof protobufjs_1.default.Type) {
-                    var _type = (0, toType_1.toType)(value, imports);
-                    codeBlocks.push.apply(codeBlocks, _type);
+                    var _type = (0, toType_1.toType)(value);
+                    typeBlock.push.apply(typeBlock, _type);
                 }
                 else if (value instanceof protobufjs_1.default.Enum) {
                     var _enum = (0, generateEnum_1.generateEnum)(value);
-                    codeBlocks.push(_enum);
+                    typeBlock.push(_enum);
                 }
                 else if (value instanceof protobufjs_1.default.Namespace) {
                     if (value.nested) {
-                        var _codes = generateTypes(value["nested"], imports);
-                        codeBlocks.push.apply(codeBlocks, _codes);
+                        var _codes = generateTypes(value.nested);
+                        typeBlock.push.apply(typeBlock, _codes);
                     }
                 }
                 else if (value instanceof protobufjs_1.default.MapField) {
@@ -46,7 +46,7 @@ function generateTypes(element, imports) {
             }
         }
     }
-    return codeBlocks;
+    return typeBlock;
 }
 exports.generateTypes = generateTypes;
 //# sourceMappingURL=generateTypes.js.map

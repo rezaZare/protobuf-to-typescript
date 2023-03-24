@@ -3,24 +3,19 @@ import { code, Code } from "ts-poet";
 import { blockType, CodeBlock } from "../model";
 
 export function generateEnum(element: protobuf.Enum) {
-  // const codes: Code[] = [];
-
   let enumBlock: CodeBlock = {
     blockType: blockType.ENUM,
     name: element.name,
     fields: [],
   };
 
-  // codes.push(code`export enum ${element.name} {`);
   for (const [key, value] of Object.entries(element.values)) {
-    // codes.push(code`${key}= ${value},`);
     enumBlock.fields.push({
-      name: key,
+      name: key.toUpperCase(),
       value: value.toString(),
       typeValid: true,
     });
   }
-  // codes.push(code`}`);
 
   return enumBlock;
 }
