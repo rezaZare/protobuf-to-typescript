@@ -1,8 +1,8 @@
 {
   "name": "proto-to-typescript",
-  "version": "0.0.1",
-  "main": "dist/app.js",
-  "types": "dist/app.d.ts",
+  "version": "0.0.2",
+  "main": "/dist/index.js",
+  "types": "/dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "test": "jest",
-    "start": "node out/app.js",
+    "start": "node dist/app.js",
     "prestart": "npm run build",
     "build": "tsc"
   },
