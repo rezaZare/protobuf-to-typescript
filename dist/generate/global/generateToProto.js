@@ -1,14 +1,52 @@
-"use strict";
-var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cooked, raw) {
-    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-    return cooked;
+import { code } from "../../ts-poet";
+export function generateToProto() {
+    return code `
+    
+import * as jspb from 'google-protobuf';
+
+const isEmptyObject = (obj) =>
+  typeof obj === 'object' && Object.keys(obj).length === 0 && obj.constructor === Object;
+
+const createProxy = (msg) => {
+  if (!msg || typeof msg !== 'object') {
+    return msg;
+  }
+  if (Array.isArray(msg)) {
+    return msg.map(createProxy);
+  }
+  return new Proxy(msg, {
+    get: function (target, prop) {
+      const fieldUpper = typeof prop == 'string' ? prop.replace(/get/g, '') : '';
+      const fieldName = \` $\{fieldUpper[0].toLowerCase()}$\{fieldUpper.substring(1)}\`
+      const value = target[fieldName];
+      return () => (value === null || isEmptyObject(value) ? null : createProxy(value));
+    },
+  });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateToProto = void 0;
-var ts_poet_1 = require("ts-poet");
-function generateToProto() {
-    return (0, ts_poet_1.code)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n    \nimport * as jspb from 'google-protobuf';\n\nconst isEmptyObject = (obj) =>\n  typeof obj === 'object' && Object.keys(obj).length === 0 && obj.constructor === Object;\n\nconst createProxy = (msg) => {\n  if (!msg || typeof msg !== 'object') {\n    return msg;\n  }\n  if (Array.isArray(msg)) {\n    return msg.map(createProxy);\n  }\n  return new Proxy(msg, {\n    get: function (target, prop) {\n      const fieldUpper = typeof prop == 'string' ? prop.replace(/get/g, '') : '';\n      const fieldName = ` ${fieldUpper[0].toLowerCase()}${fieldUpper.substring(1)}`\n      const value = target[fieldName];\n      return () => (value === null || isEmptyObject(value) ? null : createProxy(value));\n    },\n  });\n};\n\n// export const protoMsgFromJson = (protoObject, ProtoClass) =>\n//   protoMsgFromObject(JSON.parse(protoObject), ProtoClass);\n\n/**\n * Serialize protobuf message fromObject\n *\n * @param {any} protoObject\n * @param {typeof require('google-protobuf').Message} ProtoClass\n * @see https://github.com/sglim/protobuf-js-from-object for inspiration\n * @returns {typeof require('google-protobuf').Message} ProtoClass instance\n */\nexport const toProto = (ProtoClass, protoObject) => {\n  debugger;\n  if (jspb === undefined) {\n    throw new Error('Please include google-protobuf.js');\n  }\n  const writer = new jspb.BinaryWriter();\n  let x = createProxy(protoObject);\n\n  ProtoClass.serializeBinaryToWriter(x, writer);\n  return ProtoClass.deserializeBinary(writer.getResultBuffer());\n};\n\n"], ["\n    \nimport * as jspb from 'google-protobuf';\n\nconst isEmptyObject = (obj) =>\n  typeof obj === 'object' && Object.keys(obj).length === 0 && obj.constructor === Object;\n\nconst createProxy = (msg) => {\n  if (!msg || typeof msg !== 'object') {\n    return msg;\n  }\n  if (Array.isArray(msg)) {\n    return msg.map(createProxy);\n  }\n  return new Proxy(msg, {\n    get: function (target, prop) {\n      const fieldUpper = typeof prop == 'string' ? prop.replace(/get/g, '') : '';\n      const fieldName = \\` $\\{fieldUpper[0].toLowerCase()}$\\{fieldUpper.substring(1)}\\`\n      const value = target[fieldName];\n      return () => (value === null || isEmptyObject(value) ? null : createProxy(value));\n    },\n  });\n};\n\n// export const protoMsgFromJson = (protoObject, ProtoClass) =>\n//   protoMsgFromObject(JSON.parse(protoObject), ProtoClass);\n\n/**\n * Serialize protobuf message fromObject\n *\n * @param {any} protoObject\n * @param {typeof require('google-protobuf').Message} ProtoClass\n * @see https://github.com/sglim/protobuf-js-from-object for inspiration\n * @returns {typeof require('google-protobuf').Message} ProtoClass instance\n */\nexport const toProto = (ProtoClass, protoObject) => {\n  debugger;\n  if (jspb === undefined) {\n    throw new Error('Please include google-protobuf.js');\n  }\n  const writer = new jspb.BinaryWriter();\n  let x = createProxy(protoObject);\n\n  ProtoClass.serializeBinaryToWriter(x, writer);\n  return ProtoClass.deserializeBinary(writer.getResultBuffer());\n};\n\n"])));
+
+// export const protoMsgFromJson = (protoObject, ProtoClass) =>
+//   protoMsgFromObject(JSON.parse(protoObject), ProtoClass);
+
+/**
+ * Serialize protobuf message fromObject
+ *
+ * @param {any} protoObject
+ * @param {typeof require('google-protobuf').Message} ProtoClass
+ * @see https://github.com/sglim/protobuf-js-from-object for inspiration
+ * @returns {typeof require('google-protobuf').Message} ProtoClass instance
+ */
+export const toProto = (ProtoClass, protoObject) => {
+  debugger;
+  if (jspb === undefined) {
+    throw new Error('Please include google-protobuf.js');
+  }
+  const writer = new jspb.BinaryWriter();
+  let x = createProxy(protoObject);
+
+  ProtoClass.serializeBinaryToWriter(x, writer);
+  return ProtoClass.deserializeBinary(writer.getResultBuffer());
+};
+
+`;
 }
-exports.generateToProto = generateToProto;
-var templateObject_1;
 //# sourceMappingURL=generateToProto.js.map

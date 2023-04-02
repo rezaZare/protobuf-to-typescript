@@ -1,5 +1,4 @@
 import protobuf from "protobufjs";
-import { Code, Import } from "ts-poet";
 import { CodeBlock } from "../model";
 
 import { generateEnum } from "./generateEnum";

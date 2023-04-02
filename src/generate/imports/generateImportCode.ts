@@ -1,4 +1,11 @@
-import { imp, Import } from "ts-poet";
+import { imp, Import } from "../../ts-poet";
+
+// import "common/types_common_v1.proto";
+// import "enums.proto";
+// import "name_api.proto";
+// import "google/protobuf/empty.proto";
+// 'workflow/common/types_common_v1.proto'
+//'google/protobuf/empty.proto'
 
 export function generateImportCode(elements: string[]) {
   const chunks: Import[] = [];
@@ -35,16 +42,6 @@ export function generateImportCode(elements: string[]) {
       }
     }
   }
-  //'workflow/common/types_common_v1.proto'
-  //common/types_common_v1.proto
-  //types_common_v1.proto
-  //'google/protobuf/empty.proto'
-
-  //   chunks.push(code`export enum ${element.name} {`);
-  //   for (const [key, value] of Object.entries(element.values)) {
-  //     chunks.push(code`${key}= ${value},`);
-  //   }
-  //   chunks.push(code`}`);
 
   return chunks;
 }

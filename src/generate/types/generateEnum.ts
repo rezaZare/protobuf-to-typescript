@@ -1,10 +1,10 @@
 import * as protobuf from "protobufjs";
-import { code, Code } from "ts-poet";
-import { blockType, CodeBlock } from "../model";
+import { code, Code } from "../../ts-poet";
+import { BlockType, CodeBlock } from "../model";
 
 export function generateEnum(element: protobuf.Enum) {
   let enumBlock: CodeBlock = {
-    blockType: blockType.ENUM,
+    blockType: BlockType.ENUM,
     name: element.name,
     fields: [],
   };

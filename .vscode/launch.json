@@ -14,7 +14,7 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ]
         }
     ]

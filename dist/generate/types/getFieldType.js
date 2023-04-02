@@ -1,16 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFieldType = void 0;
-var protobufjs_1 = __importDefault(require("protobufjs"));
-function getFieldType(field) {
+import protobuf from "protobufjs";
+export function getFieldType(field) {
     var _a;
     if (!field)
         return undefined;
-    var json = field.toJSON();
-    var isOptinal = false;
+    let json = field.toJSON();
+    let isOptinal = false;
     // if (json.options) {
     //   debugger;
     // }
@@ -30,7 +24,7 @@ function getFieldType(field) {
             isOptinal: true,
         };
     }
-    if (field instanceof protobufjs_1.default.MapField) {
+    if (field instanceof protobuf.MapField) {
         return {
             isSystemType: false,
             type: field.type,
@@ -56,7 +50,7 @@ function getFieldType(field) {
             return {
                 isSystemType: true,
                 type: " Uint8Array | string",
-                isOptinal: isOptinal,
+                isOptinal,
             };
         case "int":
         case "int32":
@@ -68,24 +62,23 @@ function getFieldType(field) {
             return {
                 isSystemType: true,
                 type: "number",
-                isOptinal: isOptinal,
+                isOptinal,
             };
         case "bool":
             return {
                 isSystemType: true,
                 type: "boolean",
-                isOptinal: isOptinal,
+                isOptinal,
             };
         default:
             return {
                 isSystemType: false,
                 type: field.type,
                 needImport: ((_a = field.type) === null || _a === void 0 ? void 0 : _a.split(".").length) > 1,
-                isOptinal: isOptinal,
+                isOptinal,
             };
     }
 }
-exports.getFieldType = getFieldType;
 function getBasicType(type) {
     switch (type) {
         case "string":

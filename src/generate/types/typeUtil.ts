@@ -1,4 +1,4 @@
-import { blockType, CodeBlock, ListOfFileTypes } from "../model";
+import { BlockType, CodeBlock, ListOfFileTypes } from "../model";
 
 export function getTypeListByTypes(blocks: ListOfFileTypes[]) {
   let types: string[] = [];
@@ -18,12 +18,12 @@ export function getTypeListByTypes(blocks: ListOfFileTypes[]) {
 export function getBlockTypes(blocks?: CodeBlock[]) {
   let types: string[] = [];
   for (let block of blocks) {
-    if (block.blockType == blockType.NAMESPACE) {
+    if (block.blockType == BlockType.NAMESPACE) {
       let name = block.name;
       types.push(...getBlockTypes(block.blocks).map((x) => name + "." + x));
     } else if (
-      block.blockType == blockType.TYPE ||
-      block.blockType == blockType.ENUM
+      block.blockType == BlockType.TYPE ||
+      block.blockType == BlockType.ENUM
     ) {
       types.push(block.name);
     }

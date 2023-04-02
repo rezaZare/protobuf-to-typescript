@@ -1,5 +1,5 @@
 import {
-  blockType,
+  BlockType,
   CodeBlock,
   FieldType,
   FileInfoType,
@@ -8,6 +8,7 @@ import {
 import { getBlockTypes } from "./typeUtil";
 
 export function typeCheckAndFix(fileBlocks: FileInfoType[]) {
+  debugger;
   fileBlocks = internalType(fileBlocks);
   fileBlocks = externalType(fileBlocks);
   return fileBlocks;
@@ -34,11 +35,11 @@ function fixType(
 ) {
   if (codeBlock.length <= 0) return [];
   codeBlock.forEach((block) => {
-    if (block.blockType === blockType.NAMESPACE) {
+    if (block.blockType === BlockType.NAMESPACE) {
       let listOfType = getBlockTypes(block.blocks);
 
       block.blocks = fixType(block.blocks, listOfType, alltype);
-    } else if (block.blockType === blockType.TYPE) {
+    } else if (block.blockType === BlockType.TYPE) {
       block.fields.forEach((field) => {
         if (!field.typeValid) {
           let typeSpl = field.type.split(".");
@@ -78,9 +79,23 @@ function fixType(
 function externalType(fileBlocks: FileInfoType[]) {
   fileBlocks.forEach((fileBlock) => {
     if (fileBlock.codeBlock?.length > 0) {
-      for (let importedFile of fileBlock.importedType) {
-        let tyleList = getTypeListByTypes(importedFile.types);
-        fileBlock.codeBlock = fixExternalType(fileBlock.codeBlock, tyleList);
+      let types = fileBlock.importFiles?.imports.filter(
+        (x) => x.name !== "google"
+      );
+      if (types?.length > 0) {
+        for (let importedFile of types) {
+          if (importedFile.isGrpcPath === true) return;
+          if (importedFile.types?.length > 0) {
+            let tyleList = getTypeListByTypes(importedFile.types);
+            fileBlock.codeBlock = fixExternalType(
+              fileBlock.codeBlock,
+              tyleList
+            );
+          } else {
+            debugger;
+          }
+        }
+      } else {
       }
     } else if (fileBlock.nested?.length > 0) {
       fileBlock.nested = externalType(fileBlock.nested);
@@ -112,9 +127,9 @@ function fixExternalType(
 ) {
   if (codeBlock.length <= 0) return [];
   codeBlock.forEach((block) => {
-    if (block.blockType === blockType.NAMESPACE) {
+    if (block.blockType === BlockType.NAMESPACE) {
       block.blocks = fixExternalType(block.blocks, typeList);
-    } else if (block.blockType === blockType.TYPE) {
+    } else if (block.blockType === BlockType.TYPE) {
       block.fields.forEach((field) => {
         if (!field.typeValid) {
           let _type = field.type;

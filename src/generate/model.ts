@@ -1,4 +1,5 @@
-import { Code, Import } from "ts-poet";
+import { Code, Import } from "../ts-poet";
+import { ImportFiles } from "./imports/import";
 import { Service } from "./service/service";
 
 export type ProtoToTsModel = {
@@ -19,7 +20,7 @@ export type ImportedType = {
   filePath?: PathInfo;
 };
 
-export enum blockType {
+export enum BlockType {
   NAMESPACE = 1,
   TYPE = 2,
   ENUM = 3,
@@ -43,16 +44,16 @@ export class ListOfFileTypes {
   name: string;
   nested?: ListOfFileTypes[];
   fields?: FieldType[];
-  type?: blockType;
+  type?: BlockType;
 }
 export class CodeBlock {
   name: string;
-  blockType: blockType;
+  blockType: BlockType;
   fields?: FieldType[];
   blocks?: CodeBlock[];
 }
 
-export type FileInfoType = {
+export class FileInfoType {
   name: string;
   path: PathInfo;
   isDirectory: boolean;
@@ -61,8 +62,9 @@ export type FileInfoType = {
   codeBlock: CodeBlock[];
   typeList: ListOfFileTypes[];
   importedType?: ImportedType[];
+  importFiles: ImportFiles;
   Service?: Service;
-};
+}
 
 export type PathInfo = {
   fileName: string;

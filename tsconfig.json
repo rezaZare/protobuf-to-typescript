@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "./dist",
+        "outDir": "./out",
         "rootDir": "./src",
         "sourceMap": true,
         "incremental": true,
@@ -15,5 +15,6 @@
         "types": ["node","jest"],
         "declaration": true,
     },
-    "exclude":["/node_modules","jest.config.ts","sample","test"]
+    
+    "exclude":["/node_modules","jest.config.ts","sample","test","dist","out","vite.config.ts"]
 }

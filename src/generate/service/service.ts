@@ -1,6 +1,6 @@
 import path from "path";
-import protobuf from "protobufjs";
-import { code, Code, imp, joinCode } from "ts-poet";
+import * as protobuf from "protobufjs";
+import { code, Code, imp, joinCode } from "../../ts-poet";
 import { capitalizeFirstLetter } from "../../utils/case";
 import { getFileName } from "../../utils/extension";
 import {
@@ -45,7 +45,7 @@ export class Service {
     let pbName = getFileName(this.filepath.grpcPb);
     let pbServiceName = getFileName(this.filepath.grpcServicePb);
 
-    let pbImport = `import * as ${pbName} from '${serviceRelativePath}/${pbName}';`;
+    let pbClientImport = `import * as ${pbName} from '${serviceRelativePath}/${pbName}';`;
     let pbServiceImport = `import * as ${pbServiceName} from '${serviceRelativePath}/${capitalizeFirstLetter(
       pbServiceName
     )}';`;
@@ -57,7 +57,7 @@ export class Service {
         importType.filePath.outPath,
         importType.filePath.grpcPath
       );
-      pbImport += `\n\rimport * as ${
+      pbClientImport += `\n\rimport * as ${
         importType.name
       }_pb from '${importedGrpcPath}/${getFileName(
         importType.filePath.grpcPb
@@ -68,7 +68,7 @@ export class Service {
       let _code = this.generateCode(
         this.service.name,
         pbServiceName,
-        pbImport,
+        pbClientImport,
         pbServiceImport,
         globalImport
       );
@@ -97,7 +97,7 @@ export class Service {
   generateCode(
     apiName: string,
     pbServiceName: string,
-    pbImport,
+    pbClientImport,
     pbServiceImport,
     globalImport
   ) {
@@ -105,7 +105,7 @@ export class Service {
   //---------------------------------------------------------------
   // -----                  Service Section                   -----
   //---------------------------------------------------------------
-    ${pbImport}
+    ${pbClientImport}
     ${pbServiceImport}
     ${globalImport}
     
@@ -158,7 +158,7 @@ export class Service {
 }
 
 export function reviewServiceType(fileBlocks: FileInfoType[]) {
-  fileBlocks.forEach((fileBlock) => {
+  fileBlocks?.forEach((fileBlock) => {
     if (fileBlock.Service?.methods?.length > 0) {
       let _internalTypes = getTypeListByTypes(fileBlock.typeList);
 

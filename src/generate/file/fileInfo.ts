@@ -1,12 +1,12 @@
 import * as fs from "fs";
 import * as path from "path";
-import protobuf from "protobufjs";
+import * as protobuf from "protobufjs";
 import * as descriptor from "protobufjs/ext/descriptor";
-import { imp, Import } from "ts-poet";
+import { imp, Import } from "../../ts-poet";
 import { FileUtil } from "../../utils/fileUtil";
 
 import {
-  blockType,
+  BlockType,
   CodeBlock,
   FileInfoType,
   ImportedType,
@@ -18,6 +18,7 @@ import { generateImportCode } from "../imports/generateImportCode";
 import { generateTypes } from "../types/generateTypes";
 import { Service } from "../service/service";
 import { getFileName } from "../../utils/extension";
+import { ImportFiles } from "../imports/import";
 
 export class FileInfo {
   files: FileInfoType[];
@@ -32,6 +33,7 @@ export class FileInfo {
       ignoreList
     );
     this.allType = this.getAllType(this.files);
+    debugger;
     this.files = this.getImportedTypes(this.files, this.allType);
   }
   private async loadInfo(
@@ -45,16 +47,13 @@ export class FileInfo {
     let directorys = await fs.readdirSync(root, { withFileTypes: true });
 
     for (let dirent of directorys) {
-      const isDirectory = dirent.isDirectory();
+      let fileInfoType = new FileInfoType();
+      fileInfoType.isDirectory = dirent.isDirectory();
+      fileInfoType.name = getFileName(dirent.name);
 
-      let nestedDirectory: FileInfoType[] = [];
-      let typeBlocks: CodeBlock[] = [];
-      let service: Service;
-      let imports: Import[] = [];
       let pathResolved = "";
       let fileName = getFileName(dirent.name);
-
-      let pathInfo: PathInfo = {
+      fileInfoType.path = {
         outPath: outPath,
         pbName: dirent.name,
         grpcPb: fileName + "_pb.js",
@@ -67,8 +66,8 @@ export class FileInfo {
         fileName: fileName,
       };
 
-      if (isDirectory) {
-        nestedDirectory = await this.loadInfo(
+      if (fileInfoType.isDirectory) {
+        fileInfoType.nested = await this.loadInfo(
           root + "/" + dirent.name,
           grpcPath + "/" + dirent.name,
           outPath + "/" + dirent.name,
@@ -78,47 +77,43 @@ export class FileInfo {
       } else {
         if (!this.isValidFile(root + "/" + dirent.name, ignoreList)) continue;
 
-        //Fill Imports and codes
         pathResolved = path.resolve(root + "/" + dirent.name);
         let protobufStr = await new FileUtil().read(pathResolved);
         if (protobufStr) {
-          let parsed = protobuf.parse(protobufStr);
+          let parsed = protobuf.parse(protobufStr); // read protobuf
           if (parsed.imports?.length > 0) {
-            imports = generateImportCode(parsed.imports);
+            // imports = generateImportCode(parsed.imports);
+            fileInfoType.importFiles = new ImportFiles(
+              parsed.imports,
+              fileInfoType.path
+            );
           }
         }
 
-        let protoBuf = await this.loadProtoBuf(pathResolved);
+        let protoBuf = await this.loadProtobuf(pathResolved);
         if (protoBuf) {
-          typeBlocks = generateTypes(protoBuf);
-          service = new Service(protoBuf, pathInfo);
+          fileInfoType.codeBlock = generateTypes(protoBuf);
+          fileInfoType.Service = new Service(protoBuf, fileInfoType.path);
         }
       }
-      result.push({
-        path: pathInfo,
-        name: getFileName(dirent.name),
-        isDirectory: isDirectory,
-        nested: nestedDirectory,
-        imports: imports,
-        codeBlock: typeBlocks,
-        Service: service,
-        typeList: this.getFileTypes(typeBlocks),
-        importedType: [],
-      });
+      fileInfoType.importedType = [];
+
+      fileInfoType.typeList = this.getFileTypes(fileInfoType.codeBlock);
+      result.push(fileInfoType);
     }
 
     return result;
   }
-  private async loadProtoBuf(filePath: string) {
+  private async loadProtobuf(filePath: string) {
     return await protobuf.loadSync(filePath);
   }
   private getFileTypes(blocks: CodeBlock[]) {
     let types: ListOfFileTypes[] = [];
-    if (blocks.length > 0) {
+    if (blocks?.length > 0) {
       blocks.forEach((block) => {
         if (
-          block.blockType == blockType.TYPE ||
-          block.blockType == blockType.ENUM
+          block.blockType == BlockType.TYPE ||
+          block.blockType == BlockType.ENUM
         ) {
           types.push({
             name: block.name,
@@ -127,7 +122,7 @@ export class FileInfo {
             fields: block.fields,
             type: block.blockType,
           });
-        } else if (block.blockType == blockType.NAMESPACE) {
+        } else if (block.blockType == BlockType.NAMESPACE) {
           let nestedTypes = this.getFileTypes(block.blocks);
           types.push({
             name: block.name,
@@ -165,30 +160,38 @@ export class FileInfo {
         file.nested = this.getImportedTypes(file.nested, allTypes);
       } else {
         file.importedType = [];
-        file.imports.forEach((imp) => {
-          if (imp.symbol == "google") {
-            file.importedType.push({
-              import: imp,
-              name: imp.symbol,
-              fileName: "google-protobuf",
-              fieldType: [],
-              importStr: `import * as google from "google-protobuf"`,
-              types: [],
-            });
+        file.importFiles?.imports?.forEach((imp) => {
+          if (imp.isGrpcPath == true) return;
+          if (imp.name == "google") {
+            // file.importedType.push({
+            //   import: imp,
+            //   name: imp.symbol,
+            //   fileName: "google-protobuf",
+            //   fieldType: [],
+            //   importStr: `import * as google from "google-protobuf"`,
+            //   types: [],
+            // });
             return;
           }
-
-          let spl = imp.source.split("/");
-          let fileName = spl[spl.length - 1];
-          let importedTypes = allTypes.filter((x) => x.fileName == fileName);
-
-          if (importedTypes.length > 0) {
-            importedTypes.forEach((item) => {
-              item.name = imp.symbol;
-              item.import = imp;
-            });
-            file.importedType.push(...importedTypes);
+          let types = allTypes.find((x) => x.fileName == imp.name);
+          if (types) {
+            imp.types = types.types;
+            imp.paths = types.filePath;
+            imp.name = types.name;
+          } else {
+            debugger;
           }
+          // let spl = imp.source.split("/");
+          // let fileName = spl[spl.length - 1];
+          // let importedTypes = allTypes.filter((x) => x.fileName == fileName);
+
+          // if (importedTypes.length > 0) {
+          //   importedTypes.forEach((item) => {
+          //     item.name = imp.symbol;
+          //     item.import = imp;
+          //   });
+          //   file.importedType.push(...importedTypes);
+          // }
           //'../common/types_common_v1'
         });
       }

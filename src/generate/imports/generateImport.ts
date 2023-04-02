@@ -1,5 +1,4 @@
-import * as protobuf from "protobufjs";
-import { code, Code, joinCode, imp, Import } from "ts-poet";
+import { imp, Import } from "../../ts-poet";
 export function generateImport(elements: string[]) {
   const chunks: Import[] = [];
 

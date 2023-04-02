@@ -1,1 +1,1 @@
-{"version":3,"file":"extension.js","sourceRoot":"","sources":["../../src/utils/extension.ts"],"names":[],"mappings":";;;AAAA,SAAgB,WAAW,CAAC,QAAgB;IAC1C,OAAO,QAAQ,CAAC,OAAO,CAAC,WAAW,EAAE,EAAE,CAAC,CAAC;AAC3C,CAAC;AAFD,kCAEC"}
+{"version":3,"file":"extension.js","sourceRoot":"","sources":["../../src/utils/extension.ts"],"names":[],"mappings":"AAAA,MAAM,UAAU,WAAW,CAAC,QAAgB;IAC1C,OAAO,QAAQ,CAAC,OAAO,CAAC,WAAW,EAAE,EAAE,CAAC,CAAC;AAC3C,CAAC"}

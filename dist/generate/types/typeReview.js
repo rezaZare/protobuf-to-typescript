@@ -1,18 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TypeReview = void 0;
-var TypeReview = /** @class */ (function () {
-    function TypeReview() {
-    }
-    TypeReview.prototype.serviceRequestType = function (typeName, internalTypes, importedTypes) {
+export class TypeReview {
+    serviceRequestType(typeName, internalTypes, importedTypes) {
         if (typeName.includes(".")) {
         }
         else {
             return typeName;
         }
         return typeName;
-    };
-    TypeReview.prototype.serviceResponseType = function (typeName, internalTypes, importedTypes) {
+    }
+    serviceResponseType(typeName, internalTypes, importedTypes) {
         if (!typeName.includes(".")) {
             if (internalTypes.includes(typeName)) {
                 return typeName;
@@ -29,8 +24,6 @@ var TypeReview = /** @class */ (function () {
             }
         }
         return typeName;
-    };
-    return TypeReview;
-}());
-exports.TypeReview = TypeReview;
+    }
+}
 //# sourceMappingURL=typeReview.js.map

@@ -1,1 +1,1 @@
-{"version":3,"file":"responseModel.js","sourceRoot":"","sources":["../../../src/generate/global/responseModel.ts"],"names":[],"mappings":";;;;;;;AAAA,mCAA+B;AAE/B,SAAgB,qBAAqB;IACnC,WAAO,cAAI,sqEAAA,kmEA2EZ,KAAC;AACF,CAAC;AA7ED,sDA6EC"}
+{"version":3,"file":"responseModel.js","sourceRoot":"","sources":["../../../src/generate/global/responseModel.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,eAAe,CAAC;AAErC,MAAM,UAAU,qBAAqB;IACnC,OAAO,IAAI,CAAA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CA2EZ,CAAC;AACF,CAAC"}

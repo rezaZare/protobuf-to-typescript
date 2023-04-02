@@ -1,1 +1,1 @@
-{"version":3,"file":"metadata.js","sourceRoot":"","sources":["../../../src/generate/global/metadata.ts"],"names":[],"mappings":";;;;;;;AAAA,mCAA+B;AAE/B,SAAgB,gBAAgB;IAC9B,WAAO,cAAI,ghBAAA,4cAcR,KAAC;AACN,CAAC;AAhBD,4CAgBC"}
+{"version":3,"file":"metadata.js","sourceRoot":"","sources":["../../../src/generate/global/metadata.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,eAAe,CAAC;AAErC,MAAM,UAAU,gBAAgB;IAC9B,OAAO,IAAI,CAAA;;;;;;;;;;;;;;KAcR,CAAC;AACN,CAAC"}

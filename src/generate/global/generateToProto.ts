@@ -1,4 +1,4 @@
-import { code } from "ts-poet";
+import { code } from "../../ts-poet";
 
 export function generateToProto() {
   return code`

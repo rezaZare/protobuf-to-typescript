@@ -1,4 +1,4 @@
-import { Code, Import } from "ts-poet";
+import { Code, Import } from "../ts-poet";
 import { Service } from "./service/service";
 export type ProtoToTsModel = {
     protobufPath: string;

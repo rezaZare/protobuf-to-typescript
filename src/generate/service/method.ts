@@ -1,4 +1,4 @@
-import { code, Code } from "ts-poet";
+import { code, Code } from "../../ts-poet";
 import { camelize } from "../../utils/case";
 
 export class Method {

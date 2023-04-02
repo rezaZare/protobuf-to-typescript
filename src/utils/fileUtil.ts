@@ -1,8 +1,8 @@
-import { code, Code, imp, joinCode } from "ts-poet";
+import { code, Code, imp, joinCode } from "../ts-poet";
 import * as fs from "fs";
 import * as writeUtil from "write";
 import {
-  blockType,
+  BlockType,
   CodeBlock,
   FieldType,
   FileInfoType,
@@ -11,6 +11,7 @@ import {
   ListOfFileTypes,
 } from "../generate/model";
 import { generateEnumCode } from "../generate/types/generateEnum";
+import { ImportType } from "../generate/imports/import";
 
 export class FileUtil {
   public async read(path) {
@@ -24,11 +25,12 @@ export class FileUtil {
           this.write(file.nested);
         } else {
           let _codes: Code[] = [];
-          if (file.importedType?.length > 0) {
-            const imported = generateImport(file.importedType);
+          if (file.importFiles?.imports?.length > 0) {
+            const imported = generateImport(file.importFiles?.imports);
+
             _codes.push(...imported);
           }
-          _codes = getCode(file.codeBlock, file);
+          _codes.push(...getCode(file.codeBlock, file));
           if (file?.Service) {
             let serviceTypeCode = file.Service.generate(file.importedType);
             if (serviceTypeCode) {
@@ -36,16 +38,16 @@ export class FileUtil {
             }
           }
           let codes = joinCode(_codes, { on: "\n" }).toString();
-          if (file.importedType?.length > 0) {
-            for (let importedFile of file.importedType) {
-              if (importedFile.importStr?.length > 0) {
-                codes = importedFile.importStr + "\n" + codes;
-              } else {
-                let iii = `import * as ${importedFile.name} from '${importedFile.import.source}'`;
-                codes = iii + "\n" + codes;
-              }
-            }
-          }
+          // if (file.importedType?.length > 0) {
+          //   for (let importedFile of file.importedType) {
+          //     if (importedFile.importStr?.length > 0) {
+          //       codes = importedFile.importStr + "\n" + codes;
+          //     } else {
+          //       let iii = `import * as ${importedFile.name} from '${importedFile.import.source}'`;
+          //       codes = iii + "\n" + codes;
+          //     }
+          //   }
+          // }
 
           if (codes) {
             await writeUtil.sync(
@@ -137,18 +139,18 @@ function getCode(
   let codes: Code[] = [];
   if (blocks.length > 0) {
     blocks.forEach((block) => {
-      if (block.blockType == blockType.NAMESPACE) {
+      if (block.blockType == BlockType.NAMESPACE) {
         codes.push(code`export namespace ${block.name} {`);
 
         codes.push(...getCode(block.blocks, fileInfo));
         codes.push(code`}`);
-      } else if (block.blockType == blockType.TYPE) {
+      } else if (block.blockType == BlockType.TYPE) {
         codes.push(...gernerateTypeCode(block, fileInfo));
         if (block.blocks?.length > 0) {
           debugger;
           codes.push(...getCode(block.blocks, fileInfo));
         }
-      } else if (block.blockType == blockType.ENUM) {
+      } else if (block.blockType == BlockType.ENUM) {
         codes.push(...generateEnumCode(block));
       }
     });
@@ -235,10 +237,10 @@ function findType(
   return undefined;
 }
 
-function generateImport(importedType?: ImportedType[]) {
+function generateImport(importedType?: ImportType[]) {
   let codes: Code[] = [];
   for (let _import of importedType) {
-    codes.push(code`${_import.import}`);
+    codes.push(code`${_import.importStr}`);
   }
 
   return codes;

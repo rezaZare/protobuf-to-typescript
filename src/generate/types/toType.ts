@@ -1,7 +1,7 @@
 import * as protobuf from "protobufjs";
-import { code, Code, imp, Import, joinCode } from "ts-poet";
+
 import { getFieldType } from "./getFieldType";
-import { blockType, CodeBlock } from "../model";
+import { BlockType, CodeBlock } from "../model";
 import { generateEnum } from "./generateEnum";
 import { camelize } from "../../utils/case";
 
@@ -11,7 +11,7 @@ export function toType(element: protobuf.Type) {
   let namespaceBlock: CodeBlock;
   if (element.nested) {
     namespaceBlock = {
-      blockType: blockType.NAMESPACE,
+      blockType: BlockType.NAMESPACE,
       name: element.name,
       blocks: [],
     };
@@ -30,7 +30,7 @@ export function toType(element: protobuf.Type) {
   }
   if (element.fields) {
     const typeBlock: CodeBlock = {
-      blockType: blockType.TYPE,
+      blockType: BlockType.TYPE,
       name: element.name,
       fields: [],
     };
