@@ -1,1 +1,2 @@
-export { protoToTs } from "./generate/protoToTs";
+export { protoToTs } from "./generator";
+export { generateIndex } from "./generator/generateIndex";

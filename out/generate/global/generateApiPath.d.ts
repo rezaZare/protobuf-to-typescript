@@ -1,1 +1,1 @@
-export declare function generateApiPathCode(): import("../../ts-poet").Code;
+export declare function generateApiPathCode(): string;

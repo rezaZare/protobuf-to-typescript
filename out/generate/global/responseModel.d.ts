@@ -1,1 +1,1 @@
-export declare function generateResponseModel(): import("../../ts-poet").Code;
+export declare function generateResponseModel(): string;

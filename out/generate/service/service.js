@@ -1,8 +1,4 @@
 "use strict";
-var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cooked, raw) {
-    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-    return cooked;
-};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -33,8 +29,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.reviewServiceType = exports.Service = void 0;
 var path_1 = __importDefault(require("path"));
 var protobuf = __importStar(require("protobufjs"));
-var ts_poet_1 = require("../../ts-poet");
-var case_1 = require("../../utils/case");
 var extension_1 = require("../../utils/extension");
 var typeReview_1 = require("../types/typeReview");
 var typeUtil_1 = require("../types/typeUtil");
@@ -60,7 +54,7 @@ var Service = /** @class */ (function () {
         var pbName = (0, extension_1.getFileName)(this.filepath.grpcPb);
         var pbServiceName = (0, extension_1.getFileName)(this.filepath.grpcServicePb);
         var pbClientImport = "import * as ".concat(pbName, " from '").concat(serviceRelativePath, "/").concat(pbName, "';");
-        var pbServiceImport = "import * as ".concat(pbServiceName, " from '").concat(serviceRelativePath, "/").concat((0, case_1.capitalizeFirstLetter)(pbServiceName), "';");
+        var pbServiceImport = "import * as ".concat(pbServiceName, " from '").concat(serviceRelativePath, "/").concat(pbServiceName, "';");
         var globalImport = "import * as global from '".concat(globalRelativePath, "'");
         for (var _i = 0, importedType_1 = importedType; _i < importedType_1.length; _i++) {
             var importType = importedType_1[_i];
@@ -96,16 +90,19 @@ var Service = /** @class */ (function () {
         }
     };
     Service.prototype.generateCode = function (apiName, pbServiceName, pbClientImport, pbServiceImport, globalImport) {
-        return (0, ts_poet_1.code)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  //---------------------------------------------------------------\n  // -----                  Service Section                   -----\n  //---------------------------------------------------------------\n    ", "\n    ", "\n    ", "\n    \n    export class Services {\n              //import section\n              ", "\n              ", "\n          }"], ["\n  //---------------------------------------------------------------\n  // -----                  Service Section                   -----\n  //---------------------------------------------------------------\n    ", "\n    ", "\n    ", "\n    \n    export class Services {\n              //import section\n              ", "\n              ", "\n          }"])), pbClientImport, pbServiceImport, globalImport, this.generateClientCode(apiName, pbServiceName), this.getAllMethodCode());
+        return "\n  //---------------------------------------------------------------\n  // -----                  Service Section                   -----\n  //---------------------------------------------------------------\n    ".concat(pbClientImport, "\n    ").concat(pbServiceImport, "\n    ").concat(globalImport, "\n    \n    export class Services {\n              //import section\n              ").concat(this.generateClientCode(apiName, pbServiceName), "\n              ").concat(this.getAllMethodCode(), "\n          }");
     };
     Service.prototype.getAllMethodCode = function () {
         if (this.methods.length > 0) {
-            return (0, ts_poet_1.joinCode)(this.methods.filter(function (x) { return x.code !== undefined; }).map(function (x) { return x.code; }), { on: "\n" }).toString();
+            return this.methods
+                .filter(function (x) { return x.code !== undefined; })
+                .map(function (x) { return x.code; })
+                .join("\n");
         }
         return "";
     };
     Service.prototype.generateClientCode = function (apiName, pbServiceName) {
-        return (0, ts_poet_1.code)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["client = (): ", ".", "Client => {\n          const _client = new ", ".", "Client(\n            global.srvPath(),\n            {}\n          );\n          global.enabledDevMode(_client);\n          return _client;\n        };"], ["client = (): ", ".", "Client => {\n          const _client = new ", ".", "Client(\n            global.srvPath(),\n            {}\n          );\n          global.enabledDevMode(_client);\n          return _client;\n        };"])), pbServiceName, apiName, pbServiceName, apiName);
+        return "client = (): ".concat(pbServiceName, ".").concat(apiName, "Client => {\n          const _client = new ").concat(pbServiceName, ".").concat(apiName, "Client(\n            global.srvPath(),\n            {}\n          );\n          global.enabledDevMode(_client);\n          return _client;\n        };");
     };
     Service.prototype.typeReview = function (internalTypes, importedTypes) {
         var _a;
@@ -135,5 +132,4 @@ function reviewServiceType(fileBlocks) {
     return fileBlocks;
 }
 exports.reviewServiceType = reviewServiceType;
-var templateObject_1, templateObject_2;
 //# sourceMappingURL=service.js.map

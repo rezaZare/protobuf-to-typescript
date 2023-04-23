@@ -69,33 +69,32 @@ var generateTypes_1 = require("../types/generateTypes");
 var service_1 = require("../service/service");
 var extension_1 = require("../../utils/extension");
 var import_1 = require("../imports/import");
+// import { rootToDNamespace } from "../../dService.";
 var FileInfo = /** @class */ (function () {
     function FileInfo() {
     }
-    FileInfo.prototype.load = function (root, grpcPath, outPath, globalpath) {
+    FileInfo.prototype.load = function (root, grpcPath, outPath, globalpath, suffix) {
         return __awaiter(this, void 0, void 0, function () {
             var ignoreList, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.getProtoIgnoreList()];
-                    case 1:
-                        ignoreList = _b.sent();
+                    case 0:
+                        ignoreList = [];
                         _a = this;
-                        return [4 /*yield*/, this.loadInfo(root, grpcPath, outPath, globalpath, ignoreList)];
-                    case 2:
+                        return [4 /*yield*/, this.loadInfo(root, grpcPath, outPath, globalpath, ignoreList, suffix)];
+                    case 1:
                         _a.files = _b.sent();
                         this.allType = this.getAllType(this.files);
-                        debugger;
                         this.files = this.getImportedTypes(this.files, this.allType);
                         return [2 /*return*/];
                 }
             });
         });
     };
-    FileInfo.prototype.loadInfo = function (root, grpcPath, outPath, globalpath, ignoreList) {
+    FileInfo.prototype.loadInfo = function (root, grpcPath, outPath, globalpath, ignoreList, suffix) {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var result, directorys, _i, directorys_1, dirent, fileInfoType, pathResolved, fileName, _b, protobufStr, parsed, protoBuf;
+            var result, directorys, _i, directorys_1, dirent, fileInfoType, pathResolved, fileName, grpcServicePbName, _b, protobufStr, parsed, protoBuf;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -113,11 +112,15 @@ var FileInfo = /** @class */ (function () {
                         fileInfoType.name = (0, extension_1.getFileName)(dirent.name);
                         pathResolved = "";
                         fileName = (0, extension_1.getFileName)(dirent.name);
+                        grpcServicePbName = fileName + "ServiceClientPb.ts";
+                        if (suffix) {
+                            grpcServicePbName = fileName.toLowerCase() + suffix + ".ts";
+                        }
                         fileInfoType.path = {
                             outPath: outPath,
                             pbName: dirent.name,
                             grpcPb: fileName + "_pb.js",
-                            grpcServicePb: fileName + "ServiceClientPb.ts",
+                            grpcServicePb: grpcServicePbName,
                             path: root,
                             tsName: fileName + ".ts",
                             grpcPath: grpcPath,
@@ -127,7 +130,7 @@ var FileInfo = /** @class */ (function () {
                         };
                         if (!fileInfoType.isDirectory) return [3 /*break*/, 4];
                         _b = fileInfoType;
-                        return [4 /*yield*/, this.loadInfo(root + "/" + dirent.name, grpcPath + "/" + dirent.name, outPath + "/" + dirent.name, globalpath, ignoreList)];
+                        return [4 /*yield*/, this.loadInfo(root + "/" + dirent.name, grpcPath + "/" + dirent.name, outPath + "/" + dirent.name, globalpath, ignoreList, suffix)];
                     case 3:
                         _b.nested = _c.sent();
                         return [3 /*break*/, 7];
@@ -149,6 +152,9 @@ var FileInfo = /** @class */ (function () {
                     case 6:
                         protoBuf = _c.sent();
                         if (protoBuf) {
+                            // let test = rootToDNamespace(protoBuf.root);
+                            // console.log(inspect(test, { colors: true, depth: 10 }));
+                            // debugger;
                             fileInfoType.codeBlock = (0, generateTypes_1.generateTypes)(protoBuf);
                             fileInfoType.Service = new service_1.Service(protoBuf, fileInfoType.path);
                         }
@@ -238,7 +244,7 @@ var FileInfo = /** @class */ (function () {
                 (_b = (_a = file.importFiles) === null || _a === void 0 ? void 0 : _a.imports) === null || _b === void 0 ? void 0 : _b.forEach(function (imp) {
                     if (imp.isGrpcPath == true)
                         return;
-                    if (imp.name == "google") {
+                    if (imp.name.startsWith("google")) {
                         // file.importedType.push({
                         //   import: imp,
                         //   name: imp.symbol,

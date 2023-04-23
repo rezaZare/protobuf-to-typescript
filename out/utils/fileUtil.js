@@ -1,8 +1,4 @@
 "use strict";
-var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cooked, raw) {
-    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-    return cooked;
-};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -64,7 +60,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileUtil = void 0;
-var ts_poet_1 = require("../ts-poet");
 var fs = __importStar(require("fs"));
 var writeUtil = __importStar(require("write"));
 var model_1 = require("../generate/model");
@@ -114,7 +109,7 @@ var FileUtil = /** @class */ (function () {
                                 _codes.push(serviceTypeCode);
                             }
                         }
-                        codes = (0, ts_poet_1.joinCode)(_codes, { on: "\n" }).toString();
+                        codes = _codes.join("\n");
                         if (!codes) return [3 /*break*/, 4];
                         return [4 /*yield*/, writeUtil.sync(file.path.outPath + "/" + file.path.tsName, codes, {
                                 newline: true,
@@ -200,9 +195,9 @@ function getCode(blocks, fileInfo) {
         blocks.forEach(function (block) {
             var _a;
             if (block.blockType == model_1.BlockType.NAMESPACE) {
-                codes.push((0, ts_poet_1.code)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["export namespace ", " {"], ["export namespace ", " {"])), block.name));
+                codes.push("export namespace ".concat(block.name, " {"));
                 codes.push.apply(codes, getCode(block.blocks, fileInfo));
-                codes.push((0, ts_poet_1.code)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["}"], ["}"]))));
+                codes.push("}");
             }
             else if (block.blockType == model_1.BlockType.TYPE) {
                 codes.push.apply(codes, gernerateTypeCode(block, fileInfo));
@@ -220,7 +215,7 @@ function getCode(blocks, fileInfo) {
 }
 function gernerateTypeCode(block, fileInfo) {
     var codes = [];
-    codes.push((0, ts_poet_1.code)(templateObject_3 || (templateObject_3 = __makeTemplateObject(["export type ", " = {"], ["export type ", " = {"])), block.name));
+    codes.push("export type ".concat(block.name, " = {"));
     for (var _i = 0, _a = block.fields; _i < _a.length; _i++) {
         var field = _a[_i];
         var _type = "";
@@ -231,13 +226,13 @@ function gernerateTypeCode(block, fileInfo) {
             _type = field.type; //getType(field, fileInfo); TODO:
         }
         if (field.isMap) {
-            codes.push((0, ts_poet_1.code)(templateObject_4 || (templateObject_4 = __makeTemplateObject(["", "", ": Array<[", ",", "]>;"], ["", "", ": Array<[", ",", "]>;"])), field.name, field.isoptional ? "?" : "", field.keyType, field.type));
+            codes.push("".concat(field.name).concat(field.isoptional ? "?" : "", ": Array<[").concat(field.keyType, ",").concat(field.type, "]>;"));
         }
         else {
-            codes.push((0, ts_poet_1.code)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["", "", "", ": ", ";"], ["", "", "", ": ", ";"])), field.name, field.isRepeated ? "List" : "", field.isoptional ? "?" : "", field.isRepeated ? "Array<" + _type + ">" : _type));
+            codes.push("".concat(field.name).concat(field.isRepeated ? "List" : "").concat(field.isoptional ? "?" : "", ": ").concat(field.isRepeated ? "Array<" + _type + ">" : _type, ";"));
         }
     }
-    codes.push((0, ts_poet_1.code)(templateObject_6 || (templateObject_6 = __makeTemplateObject(["}"], ["}"]))));
+    codes.push("}");
     return codes;
 }
 function getType(field, fileInfo) {
@@ -295,9 +290,8 @@ function generateImport(importedType) {
     var codes = [];
     for (var _i = 0, importedType_1 = importedType; _i < importedType_1.length; _i++) {
         var _import = importedType_1[_i];
-        codes.push((0, ts_poet_1.code)(templateObject_7 || (templateObject_7 = __makeTemplateObject(["", ""], ["", ""])), _import.importStr));
+        codes.push("".concat(_import.importStr));
     }
     return codes;
 }
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7;
 //# sourceMappingURL=fileUtil.js.map

@@ -1,4 +1,3 @@
-import { Code, Import } from "../ts-poet";
 import { ImportFiles } from "./imports/import";
 import { Service } from "./service/service";
 export type ProtoToTsModel = {
@@ -13,7 +12,6 @@ export type ImportedType = {
     fileName: string;
     types: ListOfFileTypes[];
     fieldType: FieldType[];
-    import?: Import;
     importStr: string;
     filePath?: PathInfo;
 };
@@ -54,7 +52,6 @@ export declare class FileInfoType {
     path: PathInfo;
     isDirectory: boolean;
     nested?: FileInfoType[];
-    imports?: Import[];
     codeBlock: CodeBlock[];
     typeList: ListOfFileTypes[];
     importedType?: ImportedType[];
@@ -77,16 +74,16 @@ export interface MethodType {
     name: string;
     requestType: string;
     responseType: string;
-    code?: Code;
+    code?: string;
 }
 export interface ServiceType {
     methods: MethodType[];
-    code: Code;
+    code: string;
 }
 export type GlobalFilesType = {
-    apiPathCode: Code;
-    enabledDevMode: Code;
-    metadata: Code;
-    responseModel: Code;
-    toProto: Code;
+    apiPathCode: string;
+    enabledDevMode: string;
+    metadata: string;
+    responseModel: string;
+    toProto: string;
 };

@@ -42,25 +42,33 @@ var validationType_1 = require("./types/validationType");
 var fileInfo_1 = require("./file/fileInfo");
 var GenerateGlobalFiles_1 = require("./global/GenerateGlobalFiles");
 var service_1 = require("./service/service");
+var generateIndex_1 = require("./generateIndex");
+var getAllFile_1 = require("./file/getAllFile");
 function protoToTs(model) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
         var files, fileUtil;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, new fileInfo_1.FileInfo()];
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, new getAllFile_1.ProtoJs(model)];
                 case 1:
-                    files = _a.sent();
-                    return [4 /*yield*/, files.load(model.protobufPath, model.generatedTypescriptPath, model.outPath, model.globalFilePath)];
+                    _b.sent();
+                    return [4 /*yield*/, new fileInfo_1.FileInfo()];
                 case 2:
-                    _a.sent();
+                    files = _b.sent();
+                    return [4 /*yield*/, files.load(model.protobufPath, model.generatedTypescriptPath, model.outPath, model.globalFilePath, model.suffix)];
+                case 3:
+                    _b.sent();
                     debugger;
                     files.files = (0, validationType_1.typeCheckAndFix)(files.files);
                     files.files = (0, service_1.reviewServiceType)(files.files);
                     if (files.files.length > 0) {
                         fileUtil = new fileUtil_1.FileUtil();
-                        fileUtil.writeGlobalFiles((0, GenerateGlobalFiles_1.GenerateGlobalFiles)(), model.globalFilePath);
+                        fileUtil.writeGlobalFiles((0, GenerateGlobalFiles_1.GenerateGlobalFiles)(model), model.globalFilePath);
                         fileUtil.write(files.files);
                     }
+                    //
+                    (0, generateIndex_1.generateIndex)((_a = model.startPathGenerateIndex) !== null && _a !== void 0 ? _a : model.outPath);
                     return [2 /*return*/];
             }
         });

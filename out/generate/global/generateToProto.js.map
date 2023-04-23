@@ -1,1 +1,1 @@
-{"version":3,"file":"generateToProto.js","sourceRoot":"","sources":["../../../src/generate/global/generateToProto.ts"],"names":[],"mappings":";;;;;;;AAAA,yCAAqC;AAErC,SAAgB,eAAe;IAC7B,WAAO,cAAI,sjDAAA,0/CA+CZ,KAAC;AACF,CAAC;AAjDD,0CAiDC"}
+{"version":3,"file":"generateToProto.js","sourceRoot":"","sources":["../../../src/generate/global/generateToProto.ts"],"names":[],"mappings":";;;AAAA,SAAgB,eAAe;IAC7B,OAAO,+mDAuDR,CAAC;AACF,CAAC;AAzDD,0CAyDC"}

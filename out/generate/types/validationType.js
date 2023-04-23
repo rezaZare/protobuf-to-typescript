@@ -4,7 +4,6 @@ exports.typeCheckAndFix = void 0;
 var model_1 = require("../model");
 var typeUtil_1 = require("./typeUtil");
 function typeCheckAndFix(fileBlocks) {
-    debugger;
     fileBlocks = internalType(fileBlocks);
     fileBlocks = externalType(fileBlocks);
     return fileBlocks;
@@ -71,7 +70,7 @@ function externalType(fileBlocks) {
     fileBlocks.forEach(function (fileBlock) {
         var _a, _b, _c, _d;
         if (((_a = fileBlock.codeBlock) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-            var types = (_b = fileBlock.importFiles) === null || _b === void 0 ? void 0 : _b.imports.filter(function (x) { return x.name !== "google"; });
+            var types = (_b = fileBlock.importFiles) === null || _b === void 0 ? void 0 : _b.imports.filter(function (x) { return !x.name.startsWith("google"); });
             if ((types === null || types === void 0 ? void 0 : types.length) > 0) {
                 for (var _i = 0, types_1 = types; _i < types_1.length; _i++) {
                     var importedFile = types_1[_i];

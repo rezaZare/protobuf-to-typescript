@@ -19,7 +19,7 @@ function getFieldType(field) {
         // /'Struct'
         return {
             isSystemType: true,
-            type: "google.protobuf.Struct",
+            type: "google_protobuf_struct.Struct.AsObject",
             isOptinal: true,
         };
     }

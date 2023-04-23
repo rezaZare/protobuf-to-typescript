@@ -8,12 +8,13 @@
         "esModuleInterop": true, 
         "forceConsistentCasingInFileNames": false, 
         "strict": false, 
-        "target": "es5",
+        "target": "ES2017",
         "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
         "skipLibCheck": true,
         "lib": ["es2017"],
         "types": ["node","jest"],
         "declaration": true,
+        "declarationDir": "dist"
     },
     
     "exclude":["/node_modules","jest.config.ts","sample","test","dist","out","vite.config.ts"]

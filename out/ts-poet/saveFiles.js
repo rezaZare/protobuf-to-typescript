@@ -48,7 +48,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveFiles = void 0;
-var crypto_1 = require("crypto");
 /**
  * Saves multiple {@link CodegenFile}s.
  */
@@ -69,11 +68,11 @@ function contentToString(file, toStringOpts) {
     return file.contents.toString(__assign(__assign(__assign({ path: file.name }, toStringOpts), file.toStringOpts), { dprintOptions: __assign(__assign({}, toStringOpts.dprintOptions), (_a = file.toStringOpts) === null || _a === void 0 ? void 0 : _a.dprintOptions) }));
 }
 // We purposefully use sha1 for speed b/c this isn't for crypto/auth
-function sha1(content) {
-    var sum = (0, crypto_1.createHash)("sha1");
-    sum.update(content);
-    return sum.digest("hex").substring(0, 6);
-}
+// function sha1(content: string): string {
+//   const sum = createHash("sha1");
+//   sum.update(content);
+//   return sum.digest("hex").substring(0, 6);
+// }
 /** Returns true if `p` is resolved, otherwise false if it is rejected. */
 function trueIfResolved(p) {
     return __awaiter(this, void 0, void 0, function () {

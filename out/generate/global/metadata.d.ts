@@ -1,1 +1,1 @@
-export declare function generateMetadata(): import("../../ts-poet").Code;
+export declare function generateMetadata(): string;

@@ -1,1 +1,1 @@
-export declare function generateEnabledDevMode(): import("../../ts-poet").Code;
+export declare function generateEnabledDevMode(): string;

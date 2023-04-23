@@ -1,1 +1,1 @@
-export declare function generateToProto(): import("../../ts-poet").Code;
+export declare function generateToProto(): string;

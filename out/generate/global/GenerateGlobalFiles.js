@@ -6,9 +6,9 @@ var generateEnabledDevMode_1 = require("./generateEnabledDevMode");
 var generateToProto_1 = require("./generateToProto");
 var metadata_1 = require("./metadata");
 var responseModel_1 = require("./responseModel");
-function GenerateGlobalFiles() {
+function GenerateGlobalFiles(model) {
     return {
-        apiPathCode: (0, generateApiPath_1.generateApiPathCode)(),
+        apiPathCode: (0, generateApiPath_1.generateApiPathCode)(model.apiPath),
         enabledDevMode: (0, generateEnabledDevMode_1.generateEnabledDevMode)(),
         metadata: (0, metadata_1.generateMetadata)(),
         responseModel: (0, responseModel_1.generateResponseModel)(),

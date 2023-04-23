@@ -8,6 +8,6 @@ export declare class FileInfo {
     private getFileTypes;
     private getAllType;
     private getImportedTypes;
-    private getProtoIgnoreList;
+    getProtoIgnoreList(): Promise<string[]>;
     private isValidFile;
 }

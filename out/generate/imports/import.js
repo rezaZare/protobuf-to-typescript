@@ -14,10 +14,11 @@ var ImportFiles = /** @class */ (function () {
                 pathStr = pathStr.replace(".proto", "");
                 if (pathStr.startsWith("google")) {
                     if (!this.imports.find(function (x) { return x.name == "google"; })) {
+                        var name = pathStr.replace(/[/]/g, "_");
                         this.imports.push({
-                            name: "google",
+                            name: name,
                             fileName: undefined,
-                            importStr: "import * as google from 'google-protobuf';",
+                            importStr: "import * as ".concat(name, " from 'google-protobuf/").concat(pathStr, "_pb';"),
                         });
                     }
                 }

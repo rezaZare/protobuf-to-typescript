@@ -1,1 +1,1 @@
-{"version":3,"file":"generateApiPath.js","sourceRoot":"","sources":["../../../src/generate/global/generateApiPath.ts"],"names":[],"mappings":";;;;;;;AAAA,yCAAqC;AAErC,SAAgB,mBAAmB;IACjC,WAAO,cAAI,mVAAA,+QAQR,KAAC;AACN,CAAC;AAVD,kDAUC"}
+{"version":3,"file":"generateApiPath.js","sourceRoot":"","sources":["../../../src/generate/global/generateApiPath.ts"],"names":[],"mappings":";;;AAAA,SAAgB,mBAAmB,CAAC,OAAe;IACjD,OAAO,sNAKQ,OAAO,+CAGnB,CAAC;AACN,CAAC;AAVD,kDAUC"}
