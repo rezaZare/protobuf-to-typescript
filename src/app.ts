@@ -1,5 +1,5 @@
 // import { protoToTs } from "./generate/protoToTs";
-import { generate } from "./generator/generate";
+
 import { protoToTs } from "./generator/index";
 class App {
   static async start() {
@@ -22,9 +22,10 @@ class App {
     //   tsSuffix: "_grpc_web_pb",
     // });
     protoToTs(
-      "./sample/auth/api/proto/auth/v1",
-      "./sample/proto",
-      "https://espadev.com/api"
+      "account",
+      "./sample/account/api/proto/account/v2",
+      "./sample/account/dist",
+      "https://espadev.ir/api"
     );
   }
 }

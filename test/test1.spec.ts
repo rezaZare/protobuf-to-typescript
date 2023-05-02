@@ -1,19 +1,30 @@
-import { entry_service_v1, entry_service_v1_grpc } from "../sample/proto";
+import { authServices } from "../sample/auth/dist";
+// import { Signin } from "../sample/auth/dist/entry_service_v1_grpc";
 
 global.XMLHttpRequest = require("xhr2");
 describe("test1", () => {
   test("adds 1 + 2 to equal 3", async () => {
-    let reqModel = new entry_service_v1.auth.v1.SigninRequest();
+    let response = await authServices.entry_service_v1.Signin(
+      {
+        phone: "+989353306943",
+        password: "Aa123456@",
+        rememberMe: true,
+      },
+      {}
+    );
+    console.log("response:", await response);
+    expect(response.status).toBe(true);
+  });
 
-    reqModel.email = "admin@vodteam.com";
-    // reqModel.phone = "+989353306943";
-    reqModel.password = "Aa12345@";
-    reqModel.role = "admin";
-    reqModel.rememberMe = false;
-    // let response = await Signin(reqModel);
-    let response = await entry_service_v1_grpc.Signin(reqModel, {});
-
-    console.log("response: signin: ", response);
-    expect(response).not.toBe(undefined);
+  test("adds 1 + 2 to equal 3", async () => {
+    let response = await authServices.profile_service_v1.GetProfile(
+      {
+        profileId: "",
+        profilePin: "",
+      },
+      {}
+    );
+    console.log("response:", response);
+    expect(response.status).toBe(false);
   });
 });

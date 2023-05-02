@@ -6,19 +6,25 @@ import * as path from "path";
 //   await generateIndex("./node/model");
 // }
 export async function generateIndex(root) {
-  let indexPath = root + "/index.js";
+  let indexPath = root + "/index.ts";
   let indexTypePath = root + "/index.d.ts";
-  await deleteIfExisted(indexPath);
-  await deleteIfExisted(indexTypePath);
-  let directorys = await getAllFileAndDirectory(root);
-  if (directorys.length > 0) {
-    let content = await makeIndexFile(root, directorys);
-    await createIndexFile(indexPath, content);
-    await createIndexFile(indexTypePath, content);
-  }
-  for (const file of directorys) {
-    if (file.isDirectory) {
-      await generateIndex(root + "/" + file.name);
+  const pathParse = path.parse(root);
+  if (pathParse.name !== "global") {
+    await deleteIfExisted(indexPath);
+    await deleteIfExisted(indexTypePath);
+    let directorys = await getAllFileAndDirectory(root);
+
+    if (directorys.length > 0) {
+      let content = await makeIndexFile(root, directorys);
+
+      await createIndexFile(indexPath, content);
+      await createIndexFile(indexTypePath, content);
+    }
+    for (const file of directorys) {
+      if (file.isDirectory) {
+        if (file == "global") continue;
+        await generateIndex(root + "/" + file.name);
+      }
     }
   }
 }

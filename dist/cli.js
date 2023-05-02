@@ -1,13 +1,10 @@
+#!/usr/bin/env node
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -24,15 +21,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/index.ts
-var src_exports = {};
-__export(src_exports, {
-  generateIndex: () => generateIndex2,
-  protoToTs: () => protoToTs
-});
-module.exports = __toCommonJS(src_exports);
+// src/cli.ts
+var import_yargs = __toESM(require("yargs"));
 
 // src/generator/index.ts
 var fs2 = __toESM(require("fs"));
@@ -742,82 +733,50 @@ function updateImports(files, blockMaps) {
 // src/generator/generateIndex.ts
 var fs3 = __toESM(require("fs"));
 var path4 = __toESM(require("path"));
-async function generateIndex2(root) {
-  let indexPath = root + "/index.ts";
-  let indexTypePath = root + "/index.d.ts";
-  const pathParse = path4.parse(root);
-  if (pathParse.name !== "global") {
-    await deleteIfExisted(indexPath);
-    await deleteIfExisted(indexTypePath);
-    let directorys = await getAllFileAndDirectory(root);
-    if (directorys.length > 0) {
-      let content = await makeIndexFile(root, directorys);
-      await createIndexFile(indexPath, content);
-      await createIndexFile(indexTypePath, content);
-    }
-    for (const file of directorys) {
-      if (file.isDirectory) {
-        if (file == "global")
-          continue;
-        await generateIndex2(root + "/" + file.name);
+
+// src/cli.ts
+async function cli() {
+  try {
+    const argv = await (0, import_yargs.default)(process.argv.slice(2)).options({
+      name: {
+        type: "string",
+        demandOption: true,
+        describe: "Package name"
+      },
+      "proto-dir": {
+        type: "string",
+        demandOption: true,
+        describe: "Protobuf definition file"
+      },
+      "output-dir": {
+        type: "string",
+        demandOption: true,
+        describe: "Ouput director for generated code"
+      },
+      endpoint: {
+        type: "string",
+        demandOption: true,
+        describe: "Endpoint address for call grpc server"
       }
+    }).version().help().alias("h", "help").argv;
+    if (argv["name"] && argv["proto-dir"] && argv["output-dir"] && argv["endpoint"]) {
+      console.log(
+        "Starting ... ",
+        "packageName: " + argv["name"],
+        "proto-dir: " + argv["proto-dir"],
+        "output-dir: " + argv["output-dir"],
+        "endpoint: " + argv["endpoint"]
+      );
+      protoToTs(
+        argv["name"],
+        argv["proto-dir"],
+        argv["output-dir"],
+        argv["endpoint"]
+      );
     }
+  } catch (error) {
+    console.error("grpcw-service-generator [error]:", error);
+    process.exit(1);
   }
 }
-async function getAllFileAndDirectory(root) {
-  let result = [];
-  let directorys = await fs3.readdirSync(root, { withFileTypes: true }).map((dirent) => {
-    return {
-      name: dirent.name,
-      isDirectory: dirent.isDirectory()
-    };
-  });
-  result.push(...directorys);
-  return result;
-}
-async function makeIndexFile(root, files) {
-  let content = "";
-  for (const file of files) {
-    let name = file.name;
-    const ext = path4.extname(name);
-    if (ext) {
-      if (ext != ".ts") {
-        continue;
-      }
-      if (await fileNeadToBeExport(root + "/" + file.name)) {
-        if (name.endsWith(".d.ts")) {
-          name = name.replace(".d.ts", "");
-        } else {
-          name = name.replace(ext, "");
-        }
-        content += `export * as ${name} from "./${name}";
-`;
-      }
-    } else {
-      content += `export * as ${name} from "./${name}";
-`;
-    }
-  }
-  return content;
-}
-async function createIndexFile(path5, content) {
-  await fs3.writeFile(path5, content, function(err) {
-    if (err)
-      throw err;
-    console.log("File is created successfully.");
-  });
-}
-async function deleteIfExisted(path5) {
-  if (await fs3.existsSync(path5)) {
-    await fs3.unlinkSync(path5);
-  }
-}
-async function fileNeadToBeExport(filename) {
-  const contents = await fs3.readFileSync(filename, "utf-8");
-  return contents.includes("export");
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  generateIndex,
-  protoToTs
-});
+cli();

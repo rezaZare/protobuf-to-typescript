@@ -1,4 +1,4 @@
-import path from "path";
+import * as path from "path";
 import * as protobuf from "protobufjs";
 import { IService } from "protobufjs/minimal";
 
@@ -25,29 +25,47 @@ export class ServiceMethod {
   }
   getCode() {
     const ret: string[] = [];
+    let packageName = this.packageName ? this.packageName + "." : "";
+    let reqType = packageName + this.requestType;
+    if (this.requestType.includes("google")) {
+      reqType = this.requestType;
+    }
+    let resType = packageName + this.responseType;
+    if (this.responseType.includes("google")) {
+      debugger;
+      resType = this.responseType;
+    }
 
     const methodDescriptorPropName = `methodDescriptor_${this.name}`;
     ret.push(
       `export async function ${this.name}(`,
-      `  model: ${this.packageName}.${this.requestType},`,
+      `  model: ${packageName + "I" + this.requestType},`,
       `  metaData: global.MetaData`,
-      `): Promise<global.ResponseModel<${this.packageName}.${this.responseType}>> {`,
+      `): Promise<global.ResponseModel<${resType}>> {`,
       `  try {`
     );
+    if (!this.requestType.includes("google")) {
+      ret.push(`const ${this.requestType}: new () => ${reqType} = ${reqType};`);
+    }
+    if (!this.responseType.includes("google")) {
+      ret.push(
+        `const ${this.responseType}: new () => ${resType} = ${resType};`
+      );
+    }
 
     ret.push(
-      `  let ${methodDescriptorPropName} =  new MethodDescriptor<${this.packageName}.${this.requestType}, ${this.packageName}.${this.responseType}>(`,
-      `  '/${this.packageName}.${this.serviceName}/${this.name}',`,
+      `  const ${methodDescriptorPropName} =  new MethodDescriptor<${reqType}, ${resType}>(`,
+      `  '/${packageName}${this.serviceName}/${this.name}',`,
       `  ${this.responseStream ? `'server_streaming'` : `MethodType.UNARY`},`,
-      `  ${this.packageName}.${this.requestType},`,
-      `  ${this.packageName}.${this.responseType},`,
-      `  (req: ${this.packageName}.${this.requestType}) => ${this.packageName}.${this.requestType}.encode(req).finish(),`,
-      `  ${this.packageName}.${this.responseType}.decode,`,
+      `  ${this.requestType},`,
+      `  ${this.responseType},`,
+      `  (req: ${reqType}) => ${reqType}.encode(req).finish(),`,
+      `  ${resType}.decode,`,
       `);`
     );
 
     ret.push(
-      `let response = await grpc.makeInterceptedUnaryCall('/${this.packageName}.${this.serviceName}/${this.name}', model, ${methodDescriptorPropName}, metaData);`
+      `const response = await grpc.makeInterceptedUnaryCall('/${packageName}${this.serviceName}/${this.name}', model, ${methodDescriptorPropName}, metaData);`
     );
     ret.push(
       `    return global.ResponseModel.Data(response);`,
@@ -67,12 +85,22 @@ export class ServiceGenerator {
   globalPath: string;
   fileName: string;
   nameSpace: string[] = [];
-  constructor(root: protobuf.Root, outDir: string, globalDir: string) {
+  needGoogleImport: boolean;
+  finalFileName: string;
+  constructor(
+    root: protobuf.Root,
+    outDir: string,
+    globalDir: string,
+    needGoogleImport: boolean,
+    finalFileName: string
+  ) {
     let outParse = path.parse(outDir);
+    this.needGoogleImport = needGoogleImport;
     this.globalPath = path.relative(outParse.dir, globalDir);
     if (!this.globalPath.startsWith("."))
       this.globalPath = "./" + this.globalPath;
     this.fileName = outParse.name;
+    this.finalFileName = finalFileName;
 
     let serviceInfo = this.getService(root.nested);
     let packageName = "";
@@ -102,11 +130,23 @@ export class ServiceGenerator {
       `import { MethodType, MethodDescriptor } from "grpc-web";`,
       `import * as global from "${this.globalPath}"`
     );
-    if (this.nameSpace.length > 0) {
-      codes.push(`import { ${this.nameSpace[0]} } from "./${this.fileName}"`);
+    if (this.finalFileName) {
+      codes.push(
+        `import { ${this.finalFileName} ${
+          this.needGoogleImport ? ", google " : ""
+        } } from "./${this.finalFileName}"`
+      );
     }
 
-    codes.push(`let grpc = new global.GrpcService(global.srvPath());`);
+    // if (this.nameSpace.length > 0) {
+    //   codes.push(
+    //     `import { ${this.nameSpace[0]} ${
+    //       this.needGoogleImport ? ", google " : ""
+    //     } } from "./${this.fileName}"`
+    //   );
+    // }
+
+    codes.push(`const grpc = new global.GrpcService(global.srvPath());`);
     codes.push(...this.methods.map((x) => x.getCode()));
     return codes.join(`\n${getIndentSpaces(1)}`);
   }

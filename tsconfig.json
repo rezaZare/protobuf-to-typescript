@@ -1,20 +1,25 @@
 {
     "compilerOptions": {
         "outDir": "./out",
+        "module": "commonjs",
         "rootDir": "./src",
         "sourceMap": true,
         "incremental": true,
         "moduleResolution": "node",
-        "esModuleInterop": true, 
+        "esModuleInterop": false, 
         "forceConsistentCasingInFileNames": false, 
         "strict": false, 
-        "target": "ES2017",
+        "target": "es2017",
         "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
         "skipLibCheck": true,
         "lib": ["es2017"],
         "types": ["node","jest"],
         "declaration": true,
-        "declarationDir": "dist"
+        "declarationDir": "dist",
+        "noImplicitOverride" : true,
+        "noImplicitThis": true,
+        
+        
     },
     
     "exclude":["/node_modules","jest.config.ts","sample","test","dist","out","vite.config.ts"]

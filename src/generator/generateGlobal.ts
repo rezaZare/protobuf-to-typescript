@@ -176,8 +176,19 @@ function generateResponseModel() {
       public static Data<T>(data: T): ResponseModel<T> {
         return new ResponseModel(true, data);
       }
-      public static Error<T>(exp: grpcWeb.RpcError): ResponseModel<T> {
-        return new ResponseModel<T>(false, undefined, exp.message, exp.code);
+      public static Error<T>(
+        exp: grpcWeb.RpcError | string | Error | unknown
+      ): ResponseModel<T> {
+        if (exp instanceof grpcWeb.RpcError) {
+          return new ResponseModel<T>(false, undefined, exp.message, exp.code);
+        }
+        if (typeof exp == "string") {
+          return new ResponseModel<T>(false, undefined, exp, 0);
+        }
+        if (exp instanceof Error) {
+          return new ResponseModel<T>(false, undefined, exp.message, 0);
+        }
+        return new ResponseModel<T>(false, undefined, "خطا ناشناخته", 0);
       }
       public static InvalidRequestModel<T>(): ResponseModel<T> {
         return new ResponseModel<T>(
@@ -264,6 +275,7 @@ async function writeGlobalFiles(apiPath, path: string) {
       overwrite: true,
     });
   }
+
   await writeUtil.sync(
     path + "/" + "index.ts",
     `

@@ -15,7 +15,9 @@ export declare class ServiceGenerator {
     globalPath: string;
     fileName: string;
     nameSpace: string[];
-    constructor(root: protobuf.Root, outDir: string, globalDir: string);
+    needGoogleImport: boolean;
+    finalFileName: string;
+    constructor(root: protobuf.Root, outDir: string, globalDir: string, needGoogleImport: boolean, finalFileName: string);
     getCode(): string;
     getService(element: any, nameSpace?: string[]): ServiceInfo;
 }

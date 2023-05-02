@@ -1,6 +1,6 @@
-import protobufjs, { ReflectionObject, IService } from "protobufjs/minimal";
-
-import protobufjsCli from "protobufjs-cli";
+import { ReflectionObject, IService } from "protobufjs/minimal";
+import * as protobufjs from "protobufjs/minimal";
+import * as protobufjsCli from "protobufjs-cli";
 
 export function getObjectKeys<T>(target: T) {
   return Object.keys(target) as (keyof T)[];
@@ -72,30 +72,59 @@ function mapServiceMethods(methods: IService["methods"]) {
     .sort((a, b) => strcmp(a.name, b.name));
 }
 
-export async function loadPackageDefinition(
+export function loadPackageDefinition(
   protoFile: string
 ): Promise<PackageDefinition> {
+  debugger;
   return new Promise((resolve, reject) => {
-    let output = protobufjs.loadSync(protoFile);
-    if (output) {
+    protobufjs.load(protoFile, (error, output) => {
       debugger;
-      const packageDefinition: PackageDefinition = {
-        files: output.files,
-        packages: output.nestedArray.map((reflectionObject) => {
-          const packageNested = hasNested(reflectionObject)
-            ? reflectionObject.nested
-            : {};
-          return {
-            name: reflectionObject.name,
-            services: mapPackageServices(packageNested),
-          };
-        }),
-      };
-      resolve(packageDefinition);
-    }
-    // reject(error);
+      if (output && !error) {
+        const packageDefinition: PackageDefinition = {
+          files: output.files,
+          packages: output.nestedArray.map((reflectionObject) => {
+            const packageNested = hasNested(reflectionObject)
+              ? reflectionObject.nested
+              : {};
+            return {
+              name: reflectionObject.name,
+              services: mapPackageServices(packageNested),
+            };
+          }),
+        };
+
+        resolve(packageDefinition);
+      }
+
+      reject(error);
+    });
   });
 }
+
+// export async function loadPackageDefinition(
+//   protoFile: string
+// ): Promise<PackageDefinition> {
+//   return new Promise((resolve, reject) => {
+//     let output = protobufjs.load(protoFile);
+//     if (output) {
+//       debugger;
+//       const packageDefinition: PackageDefinition = {
+//         files: output.files,
+//         packages: output.nestedArray.map((reflectionObject) => {
+//           const packageNested = hasNested(reflectionObject)
+//             ? reflectionObject.nested
+//             : {};
+//           return {
+//             name: reflectionObject.name,
+//             services: mapPackageServices(packageNested),
+//           };
+//         }),
+//       };
+//       resolve(packageDefinition);
+//     }
+//     // reject(error);
+//   });
+// }
 
 function strcmp(a: string, b: string): number {
   if (a < b) {
@@ -119,9 +148,8 @@ export function generateStaticObjects(protoFiles: string[]): Promise<string> {
         "--no-create",
         "--no-verify",
         "--no-convert",
-        "--no-delimited",
-        // "--keep-case",
-        "-no-service",
+        "--no-service",
+
         ...protoFiles,
       ],
       (error, output) => {
