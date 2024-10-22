@@ -105,15 +105,34 @@ var ServiceMethod = class {
     }
     let resType = packageName + this.responseType;
     if (this.responseType.includes("google")) {
-      debugger;
       resType = this.responseType;
+    }
+    let modelType = "";
+    if (this.requestType.includes("google")) {
+      modelType = this.requestType;
+    } else {
+      modelType = packageName + "I" + this.requestType;
     }
     const methodDescriptorPropName = `methodDescriptor_${this.name}`;
     ret.push(
       `export async function ${this.name}(`,
-      `  model: ${packageName + "I" + this.requestType},`,
-      `  metaData: global.MetaData`,
+      `  model: ${modelType},`,
+      `  metaData: global.MetaData,`,
+      `  cacheable?: boolean`,
       `): Promise<global.ResponseModel<${resType}>> {`,
+      `if (cacheable) {`,
+      `   const data = await getApi<${modelType},${resType}>('/${packageName}${this.serviceName}/${this.name}', model);`,
+      `   if (data) return global.ResponseModel.Data(data.response);`,
+      `}`,
+      `const id = global.getNewId();`,
+      `global.SendMessage({
+        endpoint: '/${packageName}${this.serviceName}/${this.name}',
+        id: id,
+        messageType: "grpc",
+        type: "request",
+        body: model,
+        metaData: metaData,
+      });`,
       `  try {`
     );
     if (!this.requestType.includes("google")) {
@@ -134,12 +153,43 @@ var ServiceMethod = class {
       `  ${resType}.decode,`,
       `);`
     );
+    ret.push(`global.SendMessage({
+      endpoint: '/${packageName}${this.serviceName}/${this.name}',
+      id: id,
+      messageType: "grpc",
+      type: "request",
+      body: model,
+      metaData: metaData,
+      isSendRequest: true,
+    });`);
     ret.push(
-      `const response = await grpc.makeInterceptedUnaryCall('/${packageName}${this.serviceName}/${this.name}', model, ${methodDescriptorPropName}, metaData);`
+      `const response = await grpc.makeInterceptedUnaryCall('/${packageName}${this.serviceName}/${this.name}', model, ${methodDescriptorPropName}, global.mergeMetaData(metaData));`
     );
+    ret.push(`global.SendMessage({
+      endpoint: '/${packageName}${this.serviceName}/${this.name}',
+      id: id,
+      messageType: "grpc",
+      type: "response",
+      body: response,
+      metaData: metaData,
+      isSendRequest: true,
+    });`);
+    ret.push(`
+    if (cacheable)
+      await setApi<${modelType},${resType}>('/${packageName}${this.serviceName}/${this.name}', model, response);
+    `);
     ret.push(
       `    return global.ResponseModel.Data(response);`,
       `  } catch (exp) {`,
+      `global.SendMessage({
+        endpoint: '/${packageName}${this.serviceName}/${this.name}',
+        id: id,
+        messageType: "grpc",
+        type: "error",
+        body: exp,
+        metaData: metaData,
+        isSendRequest: true,
+      });`,
       `    return global.ResponseModel.Error(exp);`,
       `  }`,
       `}`
@@ -185,7 +235,8 @@ var ServiceGenerator = class {
     let codes = [];
     codes.push(
       `import { MethodType, MethodDescriptor } from "grpc-web";`,
-      `import * as global from "${this.globalPath}"`
+      `import * as global from "${this.globalPath}";`,
+      `import { getApi, setApi } from "@espad/cache";`
     );
     if (this.finalFileName) {
       codes.push(
@@ -320,8 +371,8 @@ async function generateIndex(name, outDir, files) {
 
 // src/generator/generateGlobal.ts
 var writeUtil = __toESM(require("write"));
-function GenerateGlobalFiles(apiPath, outDir) {
-  writeGlobalFiles(apiPath, outDir + "/global");
+function GenerateGlobalFiles(apiPath, outDir, unauthorizedPath) {
+  writeGlobalFiles(apiPath, outDir + "/global", unauthorizedPath);
   return outDir + "/global";
 }
 function generateGrpcCall() {
@@ -335,7 +386,7 @@ function generateGrpcCall() {
     MethodDescriptor,
     UnaryInterceptor,
   } from "grpc-web";
-
+  
   export type MethodOptions = {
     ignoreInterceptors?: boolean;
   };
@@ -362,13 +413,14 @@ function generateGrpcCall() {
       command: string,
       params: Params,
       methodDescriptor: MethodDescriptor<Params, Result>,
+      metadata: Metadata = {},
       options: MethodOptions = {}
     ): Promise<Result> => {
       const unaryCallHandler = (): Promise<Result> =>
         this.client.thenableCall(
           this.hostname + command,
           params,
-          this.metadata,
+          metadata,
           methodDescriptor
         );
   
@@ -386,19 +438,7 @@ function generateGrpcCall() {
       return new Promise((resolve, reject) => {
         unaryCallHandler()
           .then(resolve)
-          .catch((e) => {
-            this.chainingInterceptors(this.interceptors.errors, e)
-              .then(() => {
-                this.makeInterceptedUnaryCall<Result, Params>(
-                  command,
-                  params,
-                  methodDescriptor
-                )
-                  .then(resolve)
-                  .catch(reject);
-              })
-              .catch(reject);
-          });
+          .catch(reject);
       });
     };
     private chainingInterceptors = (
@@ -418,6 +458,7 @@ function generateGrpcCall() {
       return this.metadata;
     };
   }
+  
   `;
 }
 function generateApiPathCode(apiPath) {
@@ -453,16 +494,38 @@ function generateMetadata() {
   export function mergeMetaData(metaData: MetaData): MetaData {
     const authorization = localStorage.getItem("token");
     if (authorization && authorization?.length > 0) {
-      console.log("token", { ...metaData, authorization });
+      
       return { ...metaData, authorization };
     }
     return metaData;
   }
       `;
 }
-function generateResponseModel() {
+function generateResponseModel(unauthorizedPath) {
   return `
     import * as grpcWeb from "grpc-web";
+
+    function getErrorMessage(errorMessage?: string | undefined) {
+      try {
+        if (errorMessage) {
+          const errorParsed = JSON.parse(errorMessage);
+          const description = errorParsed.description;
+          if (description && description.indexOf("{") >= 0) {
+            const startIndex = description.indexOf("{");
+            const jsonString = description.substring(startIndex);
+            const error = jsonString && JSON.parse(jsonString);
+            return error.description;
+          }
+          //
+          return errorParsed.description;
+        }
+  
+        return errorMessage;
+      } catch {
+        return errorMessage;
+      }
+    }
+
     class ResponseModel<T> {
       constructor(
         _status: boolean,
@@ -475,14 +538,14 @@ function generateResponseModel() {
         if (_status) {
           this.data = _data;
         } else {
-          this.errorMessage = _errorMessage;
+          this.errorMessage = getErrorMessage(_errorMessage);
         }
         if (_error) {
           this.error = _error;
         }
         this.code = _code;
-        if (_code != undefined && _code == 16) {
-          window.location.href = "/login";
+        if (_code != undefined && (_code == 16 || _code == 7)) {
+          window.location.href = "${unauthorizedPath}";
         }
       }
       public data?: T;
@@ -549,7 +612,39 @@ function generateResponseModel() {
     export default ResponseModel;  
   `;
 }
-async function writeGlobalFiles(apiPath, path5) {
+function generateSendMessage() {
+  return `
+  type MetaData = { [key: string]: string };
+interface MessageType {
+  messageName?: "Espad__GRPC_WEB_DEVTOOLS";
+  messageType: "grpc";
+  type: "request" | "response" | "error";
+  id?: string;
+  endpoint: string;
+  time?: number;
+  body?: any; // json
+  error?: string; //json
+  isSendRequest?: boolean;
+  metaData?: MetaData;
+}
+
+export function SendMessage(message: MessageType) {
+  try {
+    if (window) {
+      message.time = Date.now();
+      message.messageName = "Espad__GRPC_WEB_DEVTOOLS";
+      window.postMessage(message, "*");
+    }
+  } catch (e) {}
+}
+export const getNewId = () => {
+  return Math.random().toString(36).substring(2);
+};
+
+  
+      `;
+}
+async function writeGlobalFiles(apiPath, path5, unauthorizedPath) {
   let apiPathCode = generateApiPathCode(apiPath);
   if (apiPathCode) {
     await writeUtil.sync(path5 + "/apiPath.ts", apiPathCode, {
@@ -557,7 +652,7 @@ async function writeGlobalFiles(apiPath, path5) {
       overwrite: true
     });
   }
-  let responseModel = generateResponseModel();
+  let responseModel = generateResponseModel(unauthorizedPath);
   if (responseModel) {
     await writeUtil.sync(path5 + "/responseModel.ts", responseModel, {
       newline: true,
@@ -567,6 +662,13 @@ async function writeGlobalFiles(apiPath, path5) {
   let enabledDevMode = generateEnabledDevMode();
   if (enabledDevMode) {
     await writeUtil.sync(path5 + "/enableDevMode.ts", enabledDevMode, {
+      newline: true,
+      overwrite: true
+    });
+  }
+  let sendMessage = generateSendMessage();
+  if (sendMessage) {
+    await writeUtil.sync(path5 + "/sendMessage.ts", sendMessage, {
       newline: true,
       overwrite: true
     });
@@ -594,6 +696,8 @@ async function writeGlobalFiles(apiPath, path5) {
     export type { MetaData } from "./metadata";
     export { GrpcService , MethodOptions } from "./grpc";
     export { default as ResponseModel } from "./responseModel";
+    export { SendMessage, getNewId } from "./sendMessage";
+    
     `,
     {
       newline: true,
@@ -603,14 +707,13 @@ async function writeGlobalFiles(apiPath, path5) {
 }
 
 // src/generator/index.ts
-async function protoToTs(name, protoDir, outDir, endPoint) {
+async function protoToTs(name, protoDir, outDir, endPoint, unauthorizedPath) {
   var _a;
   let files = await loadFile(protoDir, outDir);
   let fielMap = getFileMap(files);
   files = updateImports(files, fielMap);
   await generateAllinOneFile(getAllProtoPath(files), outDir, name);
-  let globalDir = GenerateGlobalFiles(endPoint, outDir);
-  debugger;
+  let globalDir = GenerateGlobalFiles(endPoint, outDir, unauthorizedPath);
   if (files.length > 0) {
     for (let file of files) {
       let importedPath;
@@ -653,7 +756,6 @@ function getAllProtoPath(files) {
 async function loadFile(protoDir, outDir) {
   var _a;
   let fileInfoList = [];
-  console.log(protoDir);
   let directorys = await fs2.readdirSync(protoDir, {
     withFileTypes: true
   });

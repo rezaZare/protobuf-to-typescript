@@ -32,16 +32,38 @@ export class ServiceMethod {
     }
     let resType = packageName + this.responseType;
     if (this.responseType.includes("google")) {
-      debugger;
       resType = this.responseType;
+    }
+
+    let modelType = "";
+    if (this.requestType.includes("google")) {
+      modelType = this.requestType;
+    } else {
+      modelType = packageName + "I" + this.requestType;
     }
 
     const methodDescriptorPropName = `methodDescriptor_${this.name}`;
     ret.push(
       `export async function ${this.name}(`,
-      `  model: ${packageName + "I" + this.requestType},`,
-      `  metaData: global.MetaData`,
+      `  model: ${modelType},`,
+      `  metaData: global.MetaData,`,
+      `  cacheable?: boolean`,
       `): Promise<global.ResponseModel<${resType}>> {`,
+
+      `if (cacheable) {`,
+      `   const data = await getApi<${modelType},${resType}>('/${packageName}${this.serviceName}/${this.name}', model);`,
+      `   if (data) return global.ResponseModel.Data(data.response);`,
+      `}`,
+
+      `const id = global.getNewId();`,
+      `global.SendMessage({
+        endpoint: '/${packageName}${this.serviceName}/${this.name}',
+        id: id,
+        messageType: "grpc",
+        type: "request",
+        body: model,
+        metaData: metaData,
+      });`,
       `  try {`
     );
     if (!this.requestType.includes("google")) {
@@ -64,12 +86,44 @@ export class ServiceMethod {
       `);`
     );
 
+    ret.push(`global.SendMessage({
+      endpoint: '/${packageName}${this.serviceName}/${this.name}',
+      id: id,
+      messageType: "grpc",
+      type: "request",
+      body: model,
+      metaData: metaData,
+      isSendRequest: true,
+    });`);
+
     ret.push(
-      `const response = await grpc.makeInterceptedUnaryCall('/${packageName}${this.serviceName}/${this.name}', model, ${methodDescriptorPropName}, metaData);`
+      `const response = await grpc.makeInterceptedUnaryCall('/${packageName}${this.serviceName}/${this.name}', model, ${methodDescriptorPropName}, global.mergeMetaData(metaData));`
     );
+    ret.push(`global.SendMessage({
+      endpoint: '/${packageName}${this.serviceName}/${this.name}',
+      id: id,
+      messageType: "grpc",
+      type: "response",
+      body: response,
+      metaData: metaData,
+      isSendRequest: true,
+    });`);
+    ret.push(`
+    if (cacheable)
+      await setApi<${modelType},${resType}>('/${packageName}${this.serviceName}/${this.name}', model, response);
+    `);
     ret.push(
       `    return global.ResponseModel.Data(response);`,
       `  } catch (exp) {`,
+      `global.SendMessage({
+        endpoint: '/${packageName}${this.serviceName}/${this.name}',
+        id: id,
+        messageType: "grpc",
+        type: "error",
+        body: exp,
+        metaData: metaData,
+        isSendRequest: true,
+      });`,
       `    return global.ResponseModel.Error(exp);`,
       `  }`,
       `}`
@@ -128,7 +182,8 @@ export class ServiceGenerator {
     let codes: string[] = [];
     codes.push(
       `import { MethodType, MethodDescriptor } from "grpc-web";`,
-      `import * as global from "${this.globalPath}"`
+      `import * as global from "${this.globalPath}";`,
+      `import { getApi, setApi } from "@espad/cache";`
     );
     if (this.finalFileName) {
       codes.push(
@@ -147,6 +202,7 @@ export class ServiceGenerator {
     // }
 
     codes.push(`const grpc = new global.GrpcService(global.srvPath());`);
+
     codes.push(...this.methods.map((x) => x.getCode()));
     return codes.join(`\n${getIndentSpaces(1)}`);
   }

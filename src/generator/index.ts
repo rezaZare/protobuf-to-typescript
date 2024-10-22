@@ -31,7 +31,8 @@ export async function protoToTs(
   name: string,
   protoDir: string,
   outDir: string,
-  endPoint: string
+  endPoint: string,
+  unauthorizedPath: string
 ) {
   let files = await loadFile(protoDir, outDir);
   let fielMap = getFileMap(files);
@@ -41,8 +42,8 @@ export async function protoToTs(
   // /*
   //    this section generate global files
   // */
-  let globalDir = GenerateGlobalFiles(endPoint, outDir);
-  debugger;
+  let globalDir = GenerateGlobalFiles(endPoint, outDir, unauthorizedPath);
+
   if (files.length > 0) {
     for (let file of files) {
       let importedPath: string[];
@@ -114,7 +115,7 @@ async function testGen() {
 
 export async function loadFile(protoDir: string, outDir: string) {
   let fileInfoList: FileInfo[] = [];
-  console.log(protoDir);
+
   let directorys = await fs.readdirSync(protoDir, {
     withFileTypes: true,
   });

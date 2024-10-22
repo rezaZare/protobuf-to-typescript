@@ -1,7 +1,11 @@
 import * as writeUtil from "write";
 
-export function GenerateGlobalFiles(apiPath: string, outDir: string) {
-  writeGlobalFiles(apiPath, outDir + "/global");
+export function GenerateGlobalFiles(
+  apiPath: string,
+  outDir: string,
+  unauthorizedPath: string
+) {
+  writeGlobalFiles(apiPath, outDir + "/global", unauthorizedPath);
   return outDir + "/global";
 }
 
@@ -16,7 +20,7 @@ function generateGrpcCall() {
     MethodDescriptor,
     UnaryInterceptor,
   } from "grpc-web";
-
+  
   export type MethodOptions = {
     ignoreInterceptors?: boolean;
   };
@@ -43,13 +47,14 @@ function generateGrpcCall() {
       command: string,
       params: Params,
       methodDescriptor: MethodDescriptor<Params, Result>,
+      metadata: Metadata = {},
       options: MethodOptions = {}
     ): Promise<Result> => {
       const unaryCallHandler = (): Promise<Result> =>
         this.client.thenableCall(
           this.hostname + command,
           params,
-          this.metadata,
+          metadata,
           methodDescriptor
         );
   
@@ -67,19 +72,7 @@ function generateGrpcCall() {
       return new Promise((resolve, reject) => {
         unaryCallHandler()
           .then(resolve)
-          .catch((e) => {
-            this.chainingInterceptors(this.interceptors.errors, e)
-              .then(() => {
-                this.makeInterceptedUnaryCall<Result, Params>(
-                  command,
-                  params,
-                  methodDescriptor
-                )
-                  .then(resolve)
-                  .catch(reject);
-              })
-              .catch(reject);
-          });
+          .catch(reject);
       });
     };
     private chainingInterceptors = (
@@ -99,6 +92,7 @@ function generateGrpcCall() {
       return this.metadata;
     };
   }
+  
   `;
 }
 
@@ -135,16 +129,39 @@ function generateMetadata() {
   export function mergeMetaData(metaData: MetaData): MetaData {
     const authorization = localStorage.getItem("token");
     if (authorization && authorization?.length > 0) {
-      console.log("token", { ...metaData, authorization });
+      
       return { ...metaData, authorization };
     }
     return metaData;
   }
       `;
 }
-function generateResponseModel() {
+
+function generateResponseModel(unauthorizedPath: string) {
   return `
     import * as grpcWeb from "grpc-web";
+
+    function getErrorMessage(errorMessage?: string | undefined) {
+      try {
+        if (errorMessage) {
+          const errorParsed = JSON.parse(errorMessage);
+          const description = errorParsed.description;
+          if (description && description.indexOf("{") >= 0) {
+            const startIndex = description.indexOf("{");
+            const jsonString = description.substring(startIndex);
+            const error = jsonString && JSON.parse(jsonString);
+            return error.description;
+          }
+          //
+          return errorParsed.description;
+        }
+  
+        return errorMessage;
+      } catch {
+        return errorMessage;
+      }
+    }
+
     class ResponseModel<T> {
       constructor(
         _status: boolean,
@@ -157,14 +174,14 @@ function generateResponseModel() {
         if (_status) {
           this.data = _data;
         } else {
-          this.errorMessage = _errorMessage;
+          this.errorMessage = getErrorMessage(_errorMessage);
         }
         if (_error) {
           this.error = _error;
         }
         this.code = _code;
-        if (_code != undefined && _code == 16) {
-          window.location.href = "/login";
+        if (_code != undefined && (_code == 16 || _code == 7)) {
+          window.location.href = "${unauthorizedPath}";
         }
       }
       public data?: T;
@@ -231,15 +248,44 @@ function generateResponseModel() {
     export default ResponseModel;  
   `;
 }
-function generateToProto() {
+function generateSendMessage() {
   return `
-    export function toProto(reqType, resType, model) {
-        return reqType.deserializeBinary(resType.encode(model).finish());
-      }
+  type MetaData = { [key: string]: string };
+interface MessageType {
+  messageName?: "Espad__GRPC_WEB_DEVTOOLS";
+  messageType: "grpc";
+  type: "request" | "response" | "error";
+  id?: string;
+  endpoint: string;
+  time?: number;
+  body?: any; // json
+  error?: string; //json
+  isSendRequest?: boolean;
+  metaData?: MetaData;
+}
+
+export function SendMessage(message: MessageType) {
+  try {
+    if (window) {
+      message.time = Date.now();
+      message.messageName = "Espad__GRPC_WEB_DEVTOOLS";
+      window.postMessage(message, "*");
+    }
+  } catch (e) {}
+}
+export const getNewId = () => {
+  return Math.random().toString(36).substring(2);
+};
+
+  
       `;
 }
 
-async function writeGlobalFiles(apiPath, path: string) {
+async function writeGlobalFiles(
+  apiPath,
+  path: string,
+  unauthorizedPath: string
+) {
   let apiPathCode = generateApiPathCode(apiPath);
   if (apiPathCode) {
     await writeUtil.sync(path + "/" + "apiPath.ts", apiPathCode, {
@@ -247,7 +293,7 @@ async function writeGlobalFiles(apiPath, path: string) {
       overwrite: true,
     });
   }
-  let responseModel = generateResponseModel();
+  let responseModel = generateResponseModel(unauthorizedPath);
   if (responseModel) {
     await writeUtil.sync(path + "/" + "responseModel.ts", responseModel, {
       newline: true,
@@ -261,6 +307,13 @@ async function writeGlobalFiles(apiPath, path: string) {
       overwrite: true,
     });
   }
+  let sendMessage = generateSendMessage();
+  if (sendMessage) {
+    await writeUtil.sync(path + "/" + "sendMessage.ts", sendMessage, {
+      newline: true,
+      overwrite: true,
+    });
+  }
   let metadata = generateMetadata();
   if (metadata) {
     await writeUtil.sync(path + "/" + "metadata.ts", metadata, {
@@ -268,6 +321,7 @@ async function writeGlobalFiles(apiPath, path: string) {
       overwrite: true,
     });
   }
+
   let grpcCall = generateGrpcCall();
   if (grpcCall) {
     await writeUtil.sync(path + "/" + "grpc.ts", grpcCall, {
@@ -285,6 +339,8 @@ async function writeGlobalFiles(apiPath, path: string) {
     export type { MetaData } from "./metadata";
     export { GrpcService , MethodOptions } from "./grpc";
     export { default as ResponseModel } from "./responseModel";
+    export { SendMessage, getNewId } from "./sendMessage";
+    
     `,
     {
       newline: true,

@@ -22,10 +22,11 @@ class App {
     //   tsSuffix: "_grpc_web_pb",
     // });
     protoToTs(
-      "account",
-      "./sample/account/api/proto/account/v2",
-      "./sample/account/dist",
-      "https://espadev.ir/api"
+      "auth",
+      "./sample/auth/proto/auth",
+      "./sample/auth/dist",
+      "https://espadev.ir/api",
+      "/auth"
     );
   }
 }

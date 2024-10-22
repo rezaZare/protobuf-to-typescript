@@ -1,1 +1,1 @@
-export declare function GenerateGlobalFiles(apiPath: string, outDir: string): string;
+export declare function GenerateGlobalFiles(apiPath: string, outDir: string, unauthorizedPath: string): string;

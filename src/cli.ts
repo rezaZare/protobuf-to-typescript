@@ -27,6 +27,11 @@ async function cli() {
           demandOption: true,
           describe: "Endpoint address for call grpc server",
         },
+        "unauthorized-path": {
+          type: "string",
+          demandOption: true,
+          describe: "unauthorized redirect path",
+        },
       })
       .version()
       .help()
@@ -35,20 +40,23 @@ async function cli() {
       argv["name"] &&
       argv["proto-dir"] &&
       argv["output-dir"] &&
-      argv["endpoint"]
+      argv["endpoint"] &&
+      argv["unauthorized-path"]
     ) {
       console.log(
         "Starting ... ",
         "packageName: " + argv["name"],
         "proto-dir: " + argv["proto-dir"],
         "output-dir: " + argv["output-dir"],
-        "endpoint: " + argv["endpoint"]
+        "endpoint: " + argv["endpoint"],
+        "unauthorized-path: " + argv["unauthorized-path"]
       );
       protoToTs(
         argv["name"],
         argv["proto-dir"],
         argv["output-dir"],
-        argv["endpoint"]
+        argv["endpoint"],
+        argv["unauthorized-path"]
       );
     }
   } catch (error) {
