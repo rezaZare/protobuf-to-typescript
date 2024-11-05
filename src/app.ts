@@ -23,7 +23,7 @@ class App {
     // });
     protoToTs(
       "auth",
-      "./sample/auth/proto/auth",
+      "./sample/auth/api/proto/auth",
       "./sample/auth/dist",
       "https://espadev.ir/api",
       "/auth"

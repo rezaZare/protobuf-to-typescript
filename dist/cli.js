@@ -714,8 +714,13 @@ async function protoToTs(name, protoDir, outDir, endPoint, unauthorizedPath) {
           if (x.notDetect) {
             needGoogleImport = true;
             return x.protoPath;
-          } else
-            return x.path.inPath;
+          } else {
+            if (x.path && x.path.inPath) {
+              return x.path.inPath;
+            } else {
+              return "";
+            }
+          }
         });
       }
       await generate(
@@ -763,7 +768,6 @@ async function loadFile(protoDir, outDir) {
       package: ""
     };
     if (isDirectory) {
-      debugger;
       fileInfo.nested = await loadFile(protoDir, outDir);
     } else {
       if (path3.extname(dirent.name) != ".proto")
@@ -776,6 +780,9 @@ async function loadFile(protoDir, outDir) {
         if (parsed) {
           if (((_a = parsed.imports) == null ? void 0 : _a.length) > 0) {
             for (let impStr of parsed.imports) {
+              if (impStr.startsWith("buf/validate")) {
+                continue;
+              }
               if (impStr.startsWith("google")) {
                 fileInfo.imports.push({
                   fileName: impStr,

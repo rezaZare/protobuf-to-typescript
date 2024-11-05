@@ -53,7 +53,13 @@ export async function protoToTs(
           if (x.notDetect) {
             needGoogleImport = true;
             return x.protoPath;
-          } else return x.path.inPath;
+          } else {
+            if (x.path && x.path.inPath) {
+              return x.path.inPath;
+            } else {
+              return "";
+            }
+          }
         });
       }
       await generate(
@@ -133,7 +139,6 @@ export async function loadFile(protoDir: string, outDir: string) {
       package: "",
     };
     if (isDirectory) {
-      debugger;
       fileInfo.nested = await loadFile(protoDir, outDir);
     } else {
       if (path.extname(dirent.name) != ".proto") continue;
@@ -146,6 +151,9 @@ export async function loadFile(protoDir: string, outDir: string) {
         if (parsed) {
           if (parsed.imports?.length > 0) {
             for (let impStr of parsed.imports) {
+              if (impStr.startsWith("buf/validate")) {
+                continue;
+              }
               if (impStr.startsWith("google")) {
                 fileInfo.imports.push({
                   fileName: impStr,
